@@ -38,6 +38,9 @@ const ivrank   = await td.ivRank("NVDA");
 const setups   = await td.runScreener("csp-wheel");
 ```
 
+> **New here?** The [`examples/`](examples/) folder has short, runnable snippets
+> — each runs keyless in demo mode (`npm run build && node examples/01-flow-tape.mjs`).
+
 ### Demo mode — no key required
 
 Same API, same types, realistic fixtures, no network:
