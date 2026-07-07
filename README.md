@@ -4,16 +4,23 @@
 > client that powers the `daddy-*` open-source family (DaddyBoard, DaddyLens,
 > DaddyBot, …).
 
-Part of the [TraderDaddy Pro](https://traderdaddy.pro) open-source family, alongside
-[DaddyBoard](https://github.com/mphinance/daddyboard) (the wall display),
-[DaddyLens](https://github.com/mphinance/daddylens) (the browser extension that
-annotates `$TICKERS` on any website), and
-[DaddyBot](https://github.com/mphinance/daddybot) (the self-host Discord flow bot).
+Part of the [TraderDaddy Pro](https://traderdaddy.pro) open-source `daddy-*`
+family — every app is this SDK plus a thin shell:
 
-**Building another app in the family?** Start with the step-by-step
-[app playbook](docs/BUILDING-APPS.md) — the one pattern (SDK + a thin shell) plus
-a per-app guide for DaddyLens, DaddyBot, DaddyHome, and
-[DaddyEmbed](https://github.com/mphinance/daddyembed).
+- **[DaddyBoard](https://github.com/mphinance/daddyboard)** — the wall display, and
+  the reference consumer these internals were lifted from. *Built.*
+- **[DaddyBot](https://github.com/mphinance/daddybot)** — self-host Discord bot: six
+  slash commands + a scheduled smart-money flow-alert loop. *Built.*
+- **[DaddyLens](https://github.com/mphinance/daddylens)** — browser extension that
+  annotates `$TICKERS` on any website. *Build brief.*
+- **[DaddyEmbed](https://github.com/mphinance/daddyembed)** — embeddable flow widget
+  for blogs and sites. *Build brief.*
+- **DaddyHome** — TRMNL e-ink + Home Assistant sensors, via the `traderdaddy`
+  Python mirror. *Build brief.*
+- **DaddyMCP** — one-click MCP connector configs + example agents. *Build brief.*
+
+**Building one?** Start with the step-by-step [app playbook](docs/BUILDING-APPS.md):
+the one pattern (SDK + a thin shell) plus a per-app guide.
 
 - **Isomorphic** — runs in Node ≥18 **and** the browser. `fetch` only, zero runtime deps.
 - **Typed everywhere** — one method per tool, fully-typed responses, no `any`.
@@ -163,21 +170,10 @@ The internals are ported from DaddyBoard's `src/` — `mcpClient` → `transport
 fixtures → `@traderdaddy/sdk/mock`. See [DaddyBoard](https://github.com/mphinance/daddyboard)
 for the reference consumer.
 
-## Built on this SDK
-
-Working apps that show the "SDK + a thin shell" pattern end to end:
-
-- **[DaddyBoard](https://github.com/mphinance/daddyboard)** — the wall display; the
-  reference consumer the internals were lifted from.
-- **[DaddyBot](https://github.com/mphinance/daddybot)** — a self-host Discord bot:
-  six slash commands (`/vitals`, `/flow`, `/gex`, `/iv`, `/screener`, `/earnings`)
-  each mapping to one SDK method, plus a scheduled alert loop gated on
-  `isMarketOpen()` that dedupes on each print's `id` and colors embeds by `tierColor`.
-  Runs keyless in demo mode. The thinnest consumer — the first proof the SDK's shape
-  is right.
-
-Build briefs for the rest (DaddyLens, DaddyHome, DaddyEmbed) live in
-[`docs/BUILDING-APPS.md`](docs/BUILDING-APPS.md).
+To see the "SDK + a thin shell" pattern end to end, read the two built consumers:
+[DaddyBoard](https://github.com/mphinance/daddyboard) (a full app) and
+[DaddyBot](https://github.com/mphinance/daddybot) (the thinnest — six slash commands,
+each one SDK method, plus a scheduled alert loop). Both run keyless in demo mode.
 
 ## License
 
