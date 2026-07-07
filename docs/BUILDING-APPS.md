@@ -166,18 +166,23 @@ Answers "what's the flow on NVDA?" in a chat channel.
 Surfaces market state as Home Assistant sensors (e.g. flash a light on a
 LEGENDARY print).
 
-- **Language note:** Home Assistant is **Python**, and the Python SDK
-  (`traderdaddy` on PyPI) is a **fast-follow that isn't published yet.** Until it
-  lands you have two interim options:
-  1. **Node sidecar** — run a tiny Node service using this SDK that exposes the
-     data over local HTTP, and have the HA integration read that. (This is
-     literally DaddyBoard's `/api/state` shape — you could reuse it.)
-  2. **Call the endpoint directly** from Python (`POST /api/v1/mcp`, JSON-RPC,
-     the same auth headers) — but that re-implements what the SDK exists to
-     prevent, so prefer option 1 or wait for the PyPI port.
+- **Language note:** Home Assistant is **Python**, and there's a Python SDK for
+  exactly this — `traderdaddy`, an async 1:1 mirror of this SDK (same tool
+  surface, same shapes, same keyless `mock=True` demo mode). It lives in
+  [`python/`](../python) and publishes to PyPI via trusted publishing on a
+  `py-v*` tag.
+  ```python
+  from traderdaddy import TraderDaddy, is_market_open
+
+  demo = TraderDaddy(mock=True)                       # keyless demo
+  flow = await demo.unusual_activity()
+
+  async with TraderDaddy(api_key="td_live_...") as td:  # live
+      stats = await td.market_stats()
+  ```
+  If `pip install traderdaddy` isn't resolving yet, install from the repo
+  (`pip install ./python`) until the release tag lands.
 - **Key safety:** personal-use — the key sits in the HA server's config.
-- **Recommendation:** don't start DaddyHome until the Python SDK ships, unless
-  you're happy running the Node sidecar. Flag it to whoever owns the PyPI port.
 
 ### DaddyEmbed — public embed for someone else's site
 

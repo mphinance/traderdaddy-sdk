@@ -15,7 +15,7 @@
  * injected for non-standard runtimes or testing.
  */
 
-import { HttpError, JsonRpcError, RateLimitError } from './errors.js';
+import { HttpError, JsonRpcError, NetworkError, RateLimitError, TimeoutError } from './errors.js';
 import type { ToolArgs } from './types.js';
 
 export const DEFAULT_BASE_URL = 'https://api.traderdaddy.pro';
@@ -63,6 +63,16 @@ function nextId(): number {
   return _requestId++;
 }
 
+/** Parse a `Retry-After` header (delta-seconds or HTTP-date) into ms from now. */
+function parseRetryAfter(value: string | null): number | undefined {
+  if (!value) return undefined;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const when = Date.parse(value);
+  if (!Number.isNaN(when)) return Math.max(0, when - Date.now());
+  return undefined;
+}
+
 /** Parse the response body, handling both SSE and JSON content-types. */
 async function parseBody(
   response: Awaited<ReturnType<FetchLike>>,
@@ -80,10 +90,19 @@ async function parseBody(
       }
     }
     if (!lastData) throw new HttpError(response.status, 'SSE response contained no data lines');
-    return JSON.parse(lastData) as JsonRpcEnvelope;
+    return parseJson(lastData, response.status, 'SSE data line') as JsonRpcEnvelope;
   }
 
-  return JSON.parse(text) as JsonRpcEnvelope;
+  return parseJson(text, response.status, 'response body') as JsonRpcEnvelope;
+}
+
+/** `JSON.parse` that turns a `SyntaxError` into a typed `HttpError`. */
+function parseJson(text: string, status: number, what: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new HttpError(status, `Malformed JSON in ${what}`);
+  }
 }
 
 export class HttpTransport implements Transport {
@@ -134,12 +153,22 @@ export class HttpTransport implements Transport {
         body: JSON.stringify(body),
         signal: controller.signal,
       });
+    } catch (err) {
+      // A timer-fired abort surfaces as an `AbortError` DOMException; map it
+      // (and any raw transport failure) to a typed error so callers can narrow.
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new TimeoutError(this.timeoutMs);
+      }
+      throw new NetworkError(err instanceof Error ? err.message : 'request failed', err);
     } finally {
       clearTimeout(timer);
     }
 
     if (response.status === 429) {
-      throw new RateLimitError('HTTP 429 from MCP endpoint');
+      throw new RateLimitError(
+        'HTTP 429 from MCP endpoint',
+        parseRetryAfter(response.headers.get('retry-after')),
+      );
     }
     if (!response.ok) {
       throw new HttpError(response.status, response.statusText);
@@ -160,6 +189,6 @@ export class HttpTransport implements Transport {
       throw new HttpError(response.status, `Unexpected MCP result shape for tool ${name}`);
     }
 
-    return JSON.parse(payload) as T;
+    return parseJson(payload, response.status, `payload for tool ${name}`) as T;
   }
 }

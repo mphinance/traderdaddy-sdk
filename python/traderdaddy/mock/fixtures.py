@@ -1,9 +1,9 @@
 """fixtures.py — realistic, typed demo fixtures.
 
-Ported from @traderdaddy/sdk's mock/fixtures.ts, scoped to the six tools the
-Home Assistant integration consumes:
+Ported from @traderdaddy/sdk's mock/fixtures.ts, covering all 12 MCP tools:
     get_market_stats, get_unusual_activity, get_gex_overview, get_gex_ticker,
-    get_sector_flow, get_put_call_ratios, get_iv_rank
+    get_sector_flow, get_put_call_ratios, get_iv_rank, get_earnings_flow,
+    get_economic_calendar, run_screener, get_strategy_ideas, get_edge_xray
 
 Each name matches a tool; callables take the tool ``args`` dict. Values are
 deep-copied by ``MockTransport`` before return, so mutating a result is safe.
@@ -11,6 +11,7 @@ deep-copied by ``MockTransport`` before return, so mutating a result is safe.
 
 from __future__ import annotations
 
+import random
 from datetime import datetime, timezone
 from typing import Any
 
@@ -285,16 +286,230 @@ def get_put_call_ratios(args: dict[str, Any] | None = None) -> dict[str, Any]:
     }
 
 
-# --- get_iv_rank (no TS fixture — added for the HA demo) ---------------------
+# --- get_iv_rank ------------------------------------------------------------
 def get_iv_rank(args: dict[str, Any] | None = None) -> dict[str, Any]:
-    sym = str((args or {}).get("symbol", "SPY")).upper()
+    sym = str((args or {}).get("symbol", "NVDA")).upper()
+    rank_map = {"NVDA": 72, "SPY": 34, "QQQ": 38, "TSLA": 81, "AAPL": 28, "META": 55, "AMD": 67}
+    rank = rank_map.get(sym, 50)
+    if rank > 60:
+        note = (
+            "Premium is elevated vs history — favor selling strategies "
+            "(CSPs, credit spreads, covered calls)"
+        )
+    elif rank < 30:
+        note = (
+            "Premium is depressed vs history — favor buying strategies "
+            "(long calls/puts, debit spreads)"
+        )
+    else:
+        note = "IV is near its historical median — no strong edge to buyers or sellers"
     return {
         "symbol": sym,
-        "ivRank": 34.2,
-        "ivPercentile": 41.0,
-        "currentIV": 0.182,
-        "ivMin52w": 0.11,
-        "ivMax52w": 0.38,
-        "interpretation": "neutral",
-        "note": "IV sits mid-range for its 52-week window — neither rich nor cheap.",
+        "ivRank": rank,
+        "ivPercentile": rank + 5,
+        "currentIV": round(0.35 + rank / 200, 3),
+        "ivMin52w": 0.24,
+        "ivMax52w": 0.82,
+        "interpretation": "rich" if rank > 60 else "cheap" if rank < 30 else "neutral",
+        "note": note,
+    }
+
+
+# --- get_earnings_flow ------------------------------------------------------
+get_earnings_flow = {
+    "earnings": [
+        {
+            "event": {
+                "symbol": "TSLA", "earningsDate": "2026-07-15", "earningsTime": "AMC",
+                "expectedMovePct": 8.4, "expectedMovePrice": 22.5, "realizedMovePct": None,
+                "realizedDirection": None, "preEarningsClose": None, "postEarningsOpen": None,
+                "preEarningsFlowCount": 14, "preEarningsPremium": 4_200_000,
+                "preEarningsBullishPct": 72, "preEarningsSentiment": "Bullish",
+                "consensusConfidence": "high", "epsEstimate": 0.72, "revenueEstimate": 25_800_000_000,
+                "sector": "Consumer Discretionary", "marketCapUsd": 900_000_000_000,
+                "lastEarningsOutcome": "beat",
+            },
+            "flows": [
+                {"daysBeforeEarnings": 8, "signalWindow": "1w", "signalWeight": 0.8, "premium": 1_920_000, "sentiment": "Bullish", "unusualScore": 89, "tradeType": "sweep", "contractType": "CALL", "moneyness": "OTM"},
+                {"daysBeforeEarnings": 3, "signalWindow": "3d", "signalWeight": 1.0, "premium": 2_280_000, "sentiment": "Bullish", "unusualScore": 94, "tradeType": "sweep", "contractType": "CALL", "moneyness": "OTM"},
+            ],
+            "summary": {"direction": "Bullish", "confidence": "high", "note": "Strong call accumulation in final stretch"},
+        },
+        {
+            "event": {
+                "symbol": "NFLX", "earningsDate": "2026-07-16", "earningsTime": "AMC",
+                "expectedMovePct": 6.2, "expectedMovePrice": 42.0, "realizedMovePct": None,
+                "realizedDirection": None, "preEarningsClose": None, "postEarningsOpen": None,
+                "preEarningsFlowCount": 8, "preEarningsPremium": 1_800_000,
+                "preEarningsBullishPct": 60, "preEarningsSentiment": "Neutral",
+                "consensusConfidence": "medium", "epsEstimate": 5.1, "revenueEstimate": 10_500_000_000,
+                "sector": "Communication Services", "marketCapUsd": 280_000_000_000,
+                "lastEarningsOutcome": "beat",
+            },
+            "flows": [
+                {"daysBeforeEarnings": 5, "signalWindow": "1w", "signalWeight": 0.6, "premium": 900_000, "sentiment": "Bullish", "unusualScore": 74, "tradeType": "block", "contractType": "CALL", "moneyness": "OTM"},
+                {"daysBeforeEarnings": 2, "signalWindow": "3d", "signalWeight": 0.8, "premium": 900_000, "sentiment": "Neutral", "unusualScore": 68, "tradeType": "block", "contractType": "PUT", "moneyness": "OTM"},
+            ],
+            "summary": {"direction": "Mixed", "confidence": "medium", "note": "Straddle-like positioning — market uncertain on direction"},
+        },
+        {
+            "event": {
+                "symbol": "AMZN", "earningsDate": "2026-07-30", "earningsTime": "AMC",
+                "expectedMovePct": 5.8, "expectedMovePrice": 12.0, "realizedMovePct": None,
+                "realizedDirection": None, "preEarningsClose": None, "postEarningsOpen": None,
+                "preEarningsFlowCount": 6, "preEarningsPremium": 2_100_000,
+                "preEarningsBullishPct": 81, "preEarningsSentiment": "Bullish",
+                "consensusConfidence": "high", "epsEstimate": 1.34, "revenueEstimate": 155_000_000_000,
+                "sector": "Consumer Discretionary", "marketCapUsd": 2_100_000_000_000,
+                "lastEarningsOutcome": "beat",
+            },
+            "flows": [
+                {"daysBeforeEarnings": 24, "signalWindow": "1m", "signalWeight": 0.5, "premium": 2_100_000, "sentiment": "Bullish", "unusualScore": 86, "tradeType": "sweep", "contractType": "CALL", "moneyness": "OTM"},
+            ],
+            "summary": {"direction": "Bullish", "confidence": "medium", "note": "Early call sweeps — smart money positioning ahead of AWS print"},
+        },
+    ],
+    "count": 3,
+    "days": 7,
+    "timestamp": _now(),
+}
+
+
+# --- get_economic_calendar --------------------------------------------------
+get_economic_calendar = {
+    "dateFrom": "2026-07-06",
+    "dateTo": "2026-07-10",
+    "totalEvents": 6,
+    "events": [
+        {"date": "2026-07-07", "time": "08:30", "event": "ISM Services PMI", "impact": "high", "forecast": "53.4", "previous": "52.9", "actual": None, "country": "US"},
+        {"date": "2026-07-08", "time": "08:30", "event": "Initial Jobless Claims", "impact": "medium", "forecast": "225K", "previous": "219K", "actual": None, "country": "US"},
+        {"date": "2026-07-09", "time": "08:30", "event": "CPI (MoM)", "impact": "high", "forecast": "0.2%", "previous": "0.1%", "actual": None, "country": "US"},
+        {"date": "2026-07-09", "time": "08:30", "event": "CPI (YoY)", "impact": "high", "forecast": "2.9%", "previous": "3.0%", "actual": None, "country": "US"},
+        {"date": "2026-07-10", "time": "10:00", "event": "Michigan Sentiment", "impact": "medium", "forecast": "68.5", "previous": "67.2", "actual": None, "country": "US"},
+        {"date": "2026-07-10", "time": "14:00", "event": "Federal Budget Balance", "impact": "low", "forecast": "-$215B", "previous": "-$228B", "actual": None, "country": "US"},
+    ],
+}
+
+
+# --- run_screener -----------------------------------------------------------
+_SCREENER_RESULTS: dict[str, list[dict[str, Any]]] = {
+    "daily-cuts": [
+        {"ticker": "NVDA", "name": "NVIDIA Corp", "price": 128.45, "change": 2.34, "changePct": 1.85, "volume": 42_100_000, "avgVolume": 31_800_000, "relVol": 1.32, "score": 94, "sector": "Technology", "setup": "Leveraged Trend", "edgeScore": 87},
+        {"ticker": "META", "name": "Meta Platforms", "price": 622.8, "change": 8.2, "changePct": 1.33, "volume": 18_400_000, "avgVolume": 14_200_000, "relVol": 1.3, "score": 91, "sector": "Communication Services", "setup": "CSP Wheel", "edgeScore": 82},
+        {"ticker": "TSLA", "name": "Tesla Inc", "price": 268.1, "change": 5.4, "changePct": 2.06, "volume": 88_200_000, "avgVolume": 62_100_000, "relVol": 1.42, "score": 88, "sector": "Consumer Discretionary", "setup": "LEAPS", "edgeScore": 79},
+        {"ticker": "AMD", "name": "Advanced Micro Devices", "price": 154.3, "change": 3.1, "changePct": 2.05, "volume": 28_900_000, "avgVolume": 21_400_000, "relVol": 1.35, "score": 85, "sector": "Technology", "setup": "Leveraged Ignition", "edgeScore": 76},
+        {"ticker": "AMZN", "name": "Amazon.com", "price": 208.7, "change": 2.9, "changePct": 1.41, "volume": 31_200_000, "avgVolume": 24_600_000, "relVol": 1.27, "score": 83, "sector": "Consumer Discretionary", "setup": "LEAPS", "edgeScore": 74},
+    ],
+    "momentum": [
+        {"ticker": "NVDA", "price": 128.45, "change": 2.34, "changePct": 1.85, "score": 94, "sector": "Technology"},
+        {"ticker": "AVGO", "price": 188.2, "change": 3.8, "changePct": 2.06, "score": 88, "sector": "Technology"},
+        {"ticker": "TSM", "price": 214.6, "change": 4.2, "changePct": 2.0, "score": 86, "sector": "Technology"},
+    ],
+    "csp-wheel": [
+        {"ticker": "META", "price": 622.8, "change": 8.2, "changePct": 1.33, "score": 91, "sector": "Communication Services", "weeklyRoc": 1.42},
+        {"ticker": "AAPL", "price": 211.5, "change": 1.8, "changePct": 0.86, "score": 82, "sector": "Technology", "weeklyRoc": 1.18},
+        {"ticker": "MSFT", "price": 432.1, "change": 3.4, "changePct": 0.79, "score": 79, "sector": "Technology", "weeklyRoc": 1.08},
+    ],
+    "volatility-squeeze": [
+        {"ticker": "PLTR", "price": 28.4, "change": 0.6, "changePct": 2.16, "score": 83, "sector": "Technology"},
+        {"ticker": "SOFI", "price": 14.2, "change": 0.35, "changePct": 2.53, "score": 78, "sector": "Financials"},
+    ],
+}
+
+
+def run_screener(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    key = str((args or {}).get("screener", "daily-cuts"))
+    rows = _SCREENER_RESULTS.get(key, _SCREENER_RESULTS["daily-cuts"])
+    limit = (args or {}).get("limit")
+    results = rows[:limit] if isinstance(limit, int) else rows
+    return {
+        "screener": {"id": key, "name": key.replace("-", " ").title()},
+        "results": results,
+        "tickers": [r["ticker"] for r in results],
+        "count": len(rows),
+        "returned": len(results),
+        "timestamp": _now(),
+    }
+
+
+# --- get_strategy_ideas -----------------------------------------------------
+def get_strategy_ideas(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    sym = str((args or {}).get("symbol", "NVDA")).upper()
+    return {
+        "symbol": sym,
+        "direction": "bullish",
+        "derivedFromTechnicals": True,
+        "structures": [
+            {
+                "archetype": "bull_put_spread", "rank": 1, "score": 88,
+                "legs": [
+                    {"type": "PUT", "side": "sell", "qty": 1, "strike": 120, "premium": 3.4, "delta": -0.28},
+                    {"type": "PUT", "side": "buy", "qty": 1, "strike": 115, "premium": 1.8, "delta": -0.18},
+                ],
+                "maxProfit": 160, "maxLoss": 340, "breakevens": [118.4], "pop": 0.72,
+                "capitalAtRisk": 340, "expiration": "2026-08-07", "dte": 31,
+                "rationale": f"Sell the 120/115 put spread on {sym}. Collects $1.60 credit with 72% POP. Structure benefits from continued upside or sideways action. Risk is defined.",
+                "earningsInWindow": False,
+            },
+            {
+                "archetype": "long_call", "rank": 2, "score": 79,
+                "legs": [{"type": "CALL", "side": "buy", "qty": 1, "strike": 130, "premium": 4.2, "delta": 0.42}],
+                "maxProfit": None, "maxLoss": 420, "breakevens": [134.2], "pop": 0.42,
+                "capitalAtRisk": 420, "expiration": "2026-08-07", "dte": 31,
+                "rationale": f"Long the 130 call on {sym}. Directional leverage with defined risk. IV rank at 72 makes this slightly expensive but flow confirms the bull thesis.",
+                "earningsInWindow": False,
+            },
+            {
+                "archetype": "covered_call", "rank": 3, "score": 71,
+                "legs": [
+                    {"type": "STOCK", "side": "buy", "qty": 100, "strike": None, "premium": 128.45, "delta": 1.0},
+                    {"type": "CALL", "side": "sell", "qty": 1, "strike": 132, "premium": 2.8, "delta": 0.38},
+                ],
+                "maxProfit": 635, "maxLoss": 12565, "breakevens": [125.65], "pop": 0.62,
+                "capitalAtRisk": 12845, "expiration": "2026-08-07", "dte": 31,
+                "rationale": f"Covered call on {sym} at the 132 strike. Generates 2.2% monthly income. Capped upside above 132 — appropriate if mildly bullish or looking for income on existing position.",
+                "earningsInWindow": False,
+            },
+        ],
+        "timestamp": _now(),
+    }
+
+
+# --- get_edge_xray ----------------------------------------------------------
+def get_edge_xray(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    sym = str((args or {}).get("symbol", "NVDA")).upper()
+    spot = 128.45
+    contracts = []
+    for strike in [115, 120, 125, 128, 130, 135, 140]:
+        for typ in ("CALL", "PUT"):
+            residual = round((random.random() - 0.45) * 0.08, 4)
+            delta = (
+                round(0.7 - (strike / spot) * 0.5, 3)
+                if typ == "CALL"
+                else round(-0.3 + (strike / spot) * 0.2, 3)
+            )
+            contracts.append(
+                {
+                    "strike": strike,
+                    "type": typ,
+                    "mid": round(random.random() * 5 + 1, 2),
+                    "iv": round(0.35 + random.random() * 0.2, 3),
+                    "delta": delta,
+                    "residual": residual,
+                    "verdict": "rich" if residual > 0.02 else "cheap" if residual < -0.02 else "fair",
+                }
+            )
+    return {
+        "symbol": sym,
+        "spot": spot,
+        "expiration": "2026-08-07",
+        "dte": 31,
+        "availableExpirations": ["2026-07-11", "2026-07-18", "2026-08-07", "2026-09-18", "2026-12-18"],
+        "contracts": contracts,
+        "fairIvSummary": {
+            "callsMedianResidual": 0.018,
+            "putsMedianResidual": -0.012,
+            "overallBias": "calls slightly rich, puts slightly cheap",
+        },
+        "timestamp": _now(),
     }

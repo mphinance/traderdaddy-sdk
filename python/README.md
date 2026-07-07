@@ -84,11 +84,9 @@ get_market_phase()  # MarketPhase(phase, is_open, label, next_change_at)
 
 ## Status
 
-**v0.1.0 — scoped to the DaddyHome tool set.** All 12 methods exist; the mock
-fixtures currently cover the six Home Assistant tools (`market_stats`,
-`unusual_activity`, `gex_overview` + `gex_ticker`, `sector_flow`,
-`put_call_ratios`, `iv_rank`). Live calls work for all 12. A per-tool TTL cache
-(the TS SDK's `cache: true`) is a planned fast-follow; Home Assistant's
+**v0.1.0.** All 12 methods work live, and `mock=True` serves a typed fixture for
+every one of them — build against the demo, flip to live with a key. A per-tool
+TTL cache (the TS SDK's `cache: true`) is a planned fast-follow; Home Assistant's
 coordinator handles cadence in the meantime.
 
 ## Development

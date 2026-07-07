@@ -53,7 +53,9 @@ export async function withBackoff<T>(
       return await fn();
     } catch (err) {
       if (!(err instanceof RateLimitError) || attempt >= retries) throw err;
-      const delayMs = backoffDelayMs(attempt, opts);
+      // Honor a server-supplied `Retry-After` when it asks for a longer wait
+      // than our own backoff curve; never retry sooner than the server allows.
+      const delayMs = Math.max(backoffDelayMs(attempt, opts), err.retryAfterMs ?? 0);
       opts.onRetry?.({ attempt: attempt + 1, delayMs, error: err });
       await sleep(delayMs);
       attempt++;

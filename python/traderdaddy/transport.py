@@ -16,9 +16,11 @@ when it does, this transport will not close it.
 from __future__ import annotations
 
 import json
+import time
+from email.utils import parsedate_to_datetime
 from typing import TYPE_CHECKING, Any, Optional, Protocol
 
-from .errors import HttpError, JsonRpcError, RateLimitError
+from .errors import HttpError, JsonRpcError, NetworkError, RateLimitError, TimeoutError
 
 if TYPE_CHECKING:  # pragma: no cover
     import httpx
@@ -34,6 +36,29 @@ class Transport(Protocol):
     async def call_tool(self, name: str, args: dict[str, Any] | None = None) -> Any: ...
 
 
+def _parse_json(text: str, status: int, what: str) -> Any:
+    """``json.loads`` that turns a decode error into a typed ``HttpError``."""
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        raise HttpError(status, f"Malformed JSON in {what}") from None
+
+
+def _parse_retry_after(value: str | None) -> float | None:
+    """Parse a ``Retry-After`` header (delta-seconds or HTTP-date) into ms from now."""
+    if not value:
+        return None
+    try:
+        return max(0.0, float(value) * 1000)
+    except ValueError:
+        pass
+    try:
+        when = parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+    return max(0.0, when.timestamp() * 1000 - time.time() * 1000)
+
+
 def _parse_body(status: int, content_type: str, text: str) -> dict[str, Any]:
     """Decode a response body, handling both SSE and JSON content-types."""
     if "text/event-stream" in content_type:
@@ -45,8 +70,8 @@ def _parse_body(status: int, content_type: str, text: str) -> dict[str, Any]:
                     last = candidate
         if last is None:
             raise HttpError(status, "SSE response contained no data lines")
-        return json.loads(last)
-    return json.loads(text)
+        return _parse_json(last, status, "SSE data line")
+    return _parse_json(text, status, "response body")
 
 
 class HttpTransport:
@@ -92,16 +117,27 @@ class HttpTransport:
             "params": {"name": name, "arguments": args or {}},
         }
 
+        import httpx
+
         client = self._get_client()
-        resp = await client.post(
-            f"{self._base_url}{MCP_PATH}",
-            headers=self._headers(),
-            content=json.dumps(body),
-            timeout=self._timeout,
-        )
+        try:
+            resp = await client.post(
+                f"{self._base_url}{MCP_PATH}",
+                headers=self._headers(),
+                content=json.dumps(body),
+                timeout=self._timeout,
+            )
+        except httpx.TimeoutException as err:
+            raise TimeoutError(self._timeout) from err
+        except httpx.HTTPError as err:
+            # Connection/transport failure — the request never got a response.
+            raise NetworkError(str(err) or "request failed") from err
 
         if resp.status_code == 429:
-            raise RateLimitError("HTTP 429 from MCP endpoint")
+            raise RateLimitError(
+                "HTTP 429 from MCP endpoint",
+                _parse_retry_after(resp.headers.get("retry-after")),
+            )
         if not (200 <= resp.status_code < 300):
             raise HttpError(resp.status_code, resp.reason_phrase or "request failed")
 
@@ -122,7 +158,7 @@ class HttpTransport:
         if not isinstance(payload, str):
             raise HttpError(resp.status_code, f"Unexpected MCP result shape for tool {name}")
 
-        return json.loads(payload)
+        return _parse_json(payload, resp.status_code, f"payload for tool {name}")
 
     async def aclose(self) -> None:
         """Close the underlying client — only if this transport created it."""

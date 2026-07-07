@@ -10,7 +10,11 @@ Phases (ET, weekdays):
     afterhours  16:00-19:59
     closed      20:00-03:59
     weekend     Sat / Sun
-    holiday     US market holiday (approximate 2026 list)
+    holiday     US market holiday (table below, 2026-2028)
+
+Early-close days (1:00 PM ET) keep the ``open`` phase but close at 13:00 with a
+"Half Day" label. The holiday/half-day tables are hardcoded and end in 2028 —
+refresh them before then.
 """
 
 from __future__ import annotations
@@ -21,19 +25,52 @@ from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("America/New_York")
 
-# Approximate 2026 US market holidays (YYYY-MM-DD in ET).
-HOLIDAYS_2026 = frozenset(
+# US market full-closure holidays 2026-2028 (YYYY-MM-DD in ET).
+HOLIDAYS = frozenset(
     {
+        # 2026
         "2026-01-01",  # New Year's Day
         "2026-01-19",  # MLK Day
         "2026-02-16",  # Presidents' Day
         "2026-04-03",  # Good Friday
         "2026-05-25",  # Memorial Day
-        "2026-07-03",  # Independence Day observed
+        "2026-06-19",  # Juneteenth
+        "2026-07-03",  # Independence Day observed (Jul 4 is Sat)
         "2026-09-07",  # Labor Day
         "2026-11-26",  # Thanksgiving
-        "2026-11-27",  # Day after Thanksgiving (early close — treated as closed)
         "2026-12-25",  # Christmas
+        # 2027
+        "2027-01-01",  # New Year's Day
+        "2027-01-18",  # MLK Day
+        "2027-02-15",  # Presidents' Day
+        "2027-03-26",  # Good Friday
+        "2027-05-31",  # Memorial Day
+        "2027-06-18",  # Juneteenth observed (Jun 19 is Sat)
+        "2027-07-05",  # Independence Day observed (Jul 4 is Sun)
+        "2027-09-06",  # Labor Day
+        "2027-11-25",  # Thanksgiving
+        "2027-12-24",  # Christmas observed (Dec 25 is Sat)
+        # 2028
+        "2028-01-17",  # MLK Day (New Year Jan 1 is Sat — not observed)
+        "2028-02-21",  # Presidents' Day
+        "2028-04-14",  # Good Friday
+        "2028-05-29",  # Memorial Day
+        "2028-06-19",  # Juneteenth
+        "2028-07-04",  # Independence Day
+        "2028-09-04",  # Labor Day
+        "2028-11-23",  # Thanksgiving
+        "2028-12-25",  # Christmas
+    }
+)
+
+# Early-close (1:00 PM ET) half-days 2026-2028 (YYYY-MM-DD in ET).
+HALF_DAYS = frozenset(
+    {
+        "2026-11-27",  # Day after Thanksgiving
+        "2026-12-24",  # Christmas Eve
+        "2027-11-26",  # Day after Thanksgiving
+        "2028-07-03",  # Day before Independence Day
+        "2028-11-24",  # Day after Thanksgiving
     }
 )
 
@@ -72,20 +109,24 @@ def get_market_phase(now: datetime | None = None) -> MarketPhase:
         )
 
     # Holiday
-    if date_str in HOLIDAYS_2026:
+    if date_str in HOLIDAYS:
         nxt = (et + timedelta(days=1)).date()
         return MarketPhase(
             "holiday", False, "Market Closed (Holiday)", _et_wall(nxt, 4, 0).isoformat()
         )
 
     total = et.hour * 60 + et.minute
+    is_half_day = date_str in HALF_DAYS
+    close = 13 * 60 if is_half_day else _CLOSE  # 13:00 on half-days, else 16:00
 
     if total < _PRE_OPEN:
         phase, is_open, label, nh, nm = "closed", False, "Market Closed", 4, 0
     elif total < _OPEN:
         phase, is_open, label, nh, nm = "premarket", False, "Pre-Market", 9, 30
-    elif total < _CLOSE:
-        phase, is_open, label, nh, nm = "open", True, "Market Open", 16, 0
+    elif total < close:
+        label = "Market Open (Half Day)" if is_half_day else "Market Open"
+        nh = 13 if is_half_day else 16
+        phase, is_open, nm = "open", True, 0
     elif total < _AFTER_END:
         phase, is_open, label, nh, nm = "afterhours", False, "After Hours", 20, 0
     else:

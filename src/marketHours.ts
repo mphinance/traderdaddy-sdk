@@ -12,7 +12,11 @@
  *   afterhours  16:00–19:59
  *   closed      20:00–03:59
  *   weekend     Sat / Sun
- *   holiday     US market holiday (approximate 2026 list)
+ *   holiday     US market holiday (table below, 2026–2028)
+ *
+ * Early-close days (1:00 PM ET) keep the `open` phase but close at 13:00 with a
+ * "Half Day" label. The holiday/half-day tables are hardcoded and end in 2028 —
+ * refresh them before then.
  */
 
 export type MarketPhaseName =
@@ -31,18 +35,49 @@ export interface MarketPhase {
   nextChangeAt: string;
 }
 
-/** Approximate 2026 US market holidays (YYYY-MM-DD in ET). */
-const HOLIDAYS_2026 = new Set<string>([
+/** US market full-closure holidays 2026–2028 (YYYY-MM-DD in ET). */
+const HOLIDAYS = new Set<string>([
+  // 2026
   '2026-01-01', // New Year's Day
   '2026-01-19', // MLK Day
   '2026-02-16', // Presidents' Day
   '2026-04-03', // Good Friday
   '2026-05-25', // Memorial Day
-  '2026-07-03', // Independence Day observed
+  '2026-06-19', // Juneteenth
+  '2026-07-03', // Independence Day observed (Jul 4 is Sat)
   '2026-09-07', // Labor Day
   '2026-11-26', // Thanksgiving
-  '2026-11-27', // Day after Thanksgiving (early close — treated as closed)
   '2026-12-25', // Christmas
+  // 2027
+  '2027-01-01', // New Year's Day
+  '2027-01-18', // MLK Day
+  '2027-02-15', // Presidents' Day
+  '2027-03-26', // Good Friday
+  '2027-05-31', // Memorial Day
+  '2027-06-18', // Juneteenth observed (Jun 19 is Sat)
+  '2027-07-05', // Independence Day observed (Jul 4 is Sun)
+  '2027-09-06', // Labor Day
+  '2027-11-25', // Thanksgiving
+  '2027-12-24', // Christmas observed (Dec 25 is Sat)
+  // 2028
+  '2028-01-17', // MLK Day (New Year Jan 1 is Sat — not observed)
+  '2028-02-21', // Presidents' Day
+  '2028-04-14', // Good Friday
+  '2028-05-29', // Memorial Day
+  '2028-06-19', // Juneteenth
+  '2028-07-04', // Independence Day
+  '2028-09-04', // Labor Day
+  '2028-11-23', // Thanksgiving
+  '2028-12-25', // Christmas
+]);
+
+/** Early-close (1:00 PM ET) half-days 2026–2028 (YYYY-MM-DD in ET). */
+const HALF_DAYS = new Set<string>([
+  '2026-11-27', // Day after Thanksgiving
+  '2026-12-24', // Christmas Eve
+  '2027-11-26', // Day after Thanksgiving
+  '2028-07-03', // Day before Independence Day
+  '2028-11-24', // Day after Thanksgiving
 ]);
 
 const TZ = 'America/New_York';
@@ -140,7 +175,7 @@ export function getMarketPhase(now: Date = new Date()): MarketPhase {
   }
 
   // Holiday
-  if (HOLIDAYS_2026.has(dateStr)) {
+  if (HOLIDAYS.has(dateStr)) {
     const tomorrow = new Date(now);
     tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
     const t = getEasternComponents(tomorrow);
@@ -155,9 +190,10 @@ export function getMarketPhase(now: Date = new Date()): MarketPhase {
 
   // Weekday phases
   const totalMinutes = hour * 60 + minute;
+  const isHalfDay = HALF_DAYS.has(dateStr);
   const PRE_OPEN = 4 * 60; // 04:00
   const OPEN = 9 * 60 + 30; // 09:30
-  const CLOSE = 16 * 60; // 16:00
+  const CLOSE = isHalfDay ? 13 * 60 : 16 * 60; // 13:00 on half-days, else 16:00
   const AFTER_END = 20 * 60; // 20:00
 
   let phase: MarketPhaseName;
@@ -181,8 +217,8 @@ export function getMarketPhase(now: Date = new Date()): MarketPhase {
   } else if (totalMinutes < CLOSE) {
     phase = 'open';
     isOpen = true;
-    label = 'Market Open';
-    nextHour = 16;
+    label = isHalfDay ? 'Market Open (Half Day)' : 'Market Open';
+    nextHour = isHalfDay ? 13 : 16;
     nextMinute = 0;
   } else if (totalMinutes < AFTER_END) {
     phase = 'afterhours';

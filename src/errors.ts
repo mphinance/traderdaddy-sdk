@@ -21,8 +21,11 @@ export class TraderDaddyError extends Error {
  */
 export class RateLimitError extends TraderDaddyError {
   override name = 'RateLimitError';
-  constructor(message = 'Rate limited') {
+  /** Server-requested wait in ms, parsed from a `Retry-After` header if present. */
+  readonly retryAfterMs?: number;
+  constructor(message = 'Rate limited', retryAfterMs?: number) {
     super(message);
+    this.retryAfterMs = retryAfterMs;
   }
 }
 
@@ -33,6 +36,26 @@ export class HttpError extends TraderDaddyError {
   constructor(status: number, statusText: string) {
     super(`MCP HTTP ${status}: ${statusText}`);
     this.status = status;
+  }
+}
+
+/** The request exceeded its timeout and was aborted before a response arrived. */
+export class TimeoutError extends TraderDaddyError {
+  override name = 'TimeoutError';
+  readonly timeoutMs: number;
+  constructor(timeoutMs: number) {
+    super(`Request timed out after ${timeoutMs}ms`);
+    this.timeoutMs = timeoutMs;
+  }
+}
+
+/** The request never reached the server (DNS/connection/transport failure). */
+export class NetworkError extends TraderDaddyError {
+  override name = 'NetworkError';
+  readonly cause?: unknown;
+  constructor(message: string, cause?: unknown) {
+    super(`Network error: ${message}`);
+    this.cause = cause;
   }
 }
 

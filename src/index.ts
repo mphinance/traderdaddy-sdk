@@ -49,6 +49,8 @@ export {
   HttpError,
   JsonRpcError,
   MissingApiKeyError,
+  TimeoutError,
+  NetworkError,
 } from './errors.js';
 
 // Every response + tool-registry type

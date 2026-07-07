@@ -20,7 +20,9 @@ from .errors import (
     HttpError,
     JsonRpcError,
     MissingApiKeyError,
+    NetworkError,
     RateLimitError,
+    TimeoutError,
     TraderDaddyError,
 )
 from .market_hours import MarketPhase, get_market_phase, is_market_open
@@ -41,6 +43,8 @@ __all__ = [
     "TraderDaddyError",
     "MissingApiKeyError",
     "RateLimitError",
+    "TimeoutError",
+    "NetworkError",
     "HttpError",
     "JsonRpcError",
     "__version__",

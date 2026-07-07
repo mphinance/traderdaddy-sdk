@@ -53,8 +53,13 @@ async def with_backoff(
         except RateLimitError as err:
             if attempt >= retries:
                 raise
-            delay = backoff_delay_ms(
-                attempt, base_ms=base_ms, cap_ms=cap_ms, jitter_ms=jitter_ms
+            # Honor a server-supplied ``Retry-After`` when it asks for a longer
+            # wait than our own backoff curve; never retry sooner than allowed.
+            delay = max(
+                backoff_delay_ms(
+                    attempt, base_ms=base_ms, cap_ms=cap_ms, jitter_ms=jitter_ms
+                ),
+                err.retry_after_ms or 0,
             )
             if on_retry is not None:
                 on_retry(attempt + 1, delay, err)
