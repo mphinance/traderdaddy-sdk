@@ -217,5 +217,8 @@ A widget a blogger drops onto their page. **This is the one that's different.**
 | Raw fixtures for tests/screenshots | `import { fixtures } from "@traderdaddy/sdk/mock"` |
 | A tool the SDK doesn't have a method for yet | `td.callTool("tool_name", args)` |
 
-The reference consumer is always [DaddyBoard](https://github.com/mphinance/daddyboard) —
-when a pattern here is unclear, that's the working example.
+Two working references whenever a pattern here is unclear:
+
+- [`../examples/`](../examples/) — short, runnable, keyless snippets for each primitive
+  (the flow tape, the gamma ladder, the market-hours poll loop, demo→live, backoff).
+- [DaddyBoard](https://github.com/mphinance/daddyboard) — a full app built on the SDK.
