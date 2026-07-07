@@ -127,6 +127,21 @@ test('client cache avoids a second transport call within TTL', async () => {
   assert.equal(calls, 2);
 });
 
+test('cache single-flights concurrent identical calls', async () => {
+  let calls = 0;
+  const transport = {
+    async callTool() {
+      calls++;
+      await new Promise((r) => setTimeout(r, 10));
+      return { n: calls };
+    },
+  };
+  const td = new TraderDaddy({ transport, cache: true });
+  const [a, b] = await Promise.all([td.marketStats(), td.marketStats()]);
+  assert.deepEqual(a, b);
+  assert.equal(calls, 1);
+});
+
 test('getMarketPhase classifies a known open weekday time', () => {
   // 2026-07-07 is a Tuesday. 14:30 UTC == 10:30 ET → open.
   const p = getMarketPhase(new Date('2026-07-07T14:30:00Z'));

@@ -15,6 +15,7 @@ Usage::
 
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING, Any, Optional
 
 from . import types as t
@@ -78,24 +79,38 @@ class TraderDaddy:
         """
         call_args = args or {}
 
-        if self._cache is not None:
-            cached = self._cache.get(name, call_args)
-            if cached is not None:
-                return cached
+        if self._cache is None:
+            return await self._invoke(name, call_args)
 
+        cached = self._cache.get(name, call_args)
+        if cached is not None:
+            return cached
+
+        # Single-flight: fold concurrent identical calls into one request.
+        pending = self._cache.get_inflight(name, call_args)
+        if pending is not None:
+            return await pending
+
+        task = asyncio.ensure_future(self._invoke(name, call_args))
+        self._cache.set_inflight(name, call_args, task)
+        try:
+            value = await task
+        finally:
+            self._cache.clear_inflight(name, call_args)
+
+        # Only cache tools the SDK knows a TTL for (all 12 named tools).
+        if name in _TOOL_NAMES:
+            self._cache.set(name, call_args, value)
+        return value
+
+    async def _invoke(self, name: str, call_args: dict[str, Any]) -> Any:
         async def run() -> Any:
             return await self._transport.call_tool(name, call_args)
 
         if self._backoff:
             opts = self._backoff if isinstance(self._backoff, dict) else {}
-            value = await with_backoff(run, **opts)
-        else:
-            value = await run()
-
-        # Only cache tools the SDK knows a TTL for (all 12 named tools).
-        if self._cache is not None and name in _TOOL_NAMES:
-            self._cache.set(name, call_args, value)
-        return value
+            return await with_backoff(run, **opts)
+        return await run()
 
     # --- one method per tool ------------------------------------------------
     async def market_stats(self) -> t.MarketStats:

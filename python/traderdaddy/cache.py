@@ -47,6 +47,7 @@ class ResponseCache:
         now: Optional[Callable[[], float]] = None,
     ) -> None:
         self._store: dict[str, tuple[Any, float]] = {}
+        self._inflight: dict[str, Any] = {}
         self._now = now or (lambda: time.time() * 1000)
 
         if isinstance(ttl, (int, float)):
@@ -80,5 +81,19 @@ class ResponseCache:
     def set(self, tool: str, args: dict[str, Any], value: Any) -> None:
         self._store[self._key(tool, args)] = (value, self._now() + self._ttl_for(tool))
 
+    def get_inflight(self, tool: str, args: dict[str, Any]) -> Any:
+        """Single-flight: the in-flight awaitable for this key, if one is
+        already running. Concurrent callers await it instead of firing a
+        duplicate request.
+        """
+        return self._inflight.get(self._key(tool, args))
+
+    def set_inflight(self, tool: str, args: dict[str, Any], task: Any) -> None:
+        self._inflight[self._key(tool, args)] = task
+
+    def clear_inflight(self, tool: str, args: dict[str, Any]) -> None:
+        self._inflight.pop(self._key(tool, args), None)
+
     def clear(self) -> None:
         self._store.clear()
+        self._inflight.clear()

@@ -43,6 +43,7 @@ interface Entry {
 
 export class ResponseCache {
   private readonly store = new Map<string, Entry>();
+  private readonly inflight = new Map<string, Promise<unknown>>();
   private readonly ttlFor: (tool: ToolName) => number;
   private readonly now: () => number;
 
@@ -84,7 +85,24 @@ export class ResponseCache {
     });
   }
 
+  /**
+   * Single-flight: the in-flight request for this key, if one is already
+   * running. Concurrent callers await it instead of firing a duplicate.
+   */
+  getInflight(tool: string, args: Record<string, unknown>): Promise<unknown> | undefined {
+    return this.inflight.get(this.key(tool, args));
+  }
+
+  setInflight(tool: string, args: Record<string, unknown>, promise: Promise<unknown>): void {
+    this.inflight.set(this.key(tool, args), promise);
+  }
+
+  clearInflight(tool: string, args: Record<string, unknown>): void {
+    this.inflight.delete(this.key(tool, args));
+  }
+
   clear(): void {
     this.store.clear();
+    this.inflight.clear();
   }
 }

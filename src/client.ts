@@ -103,17 +103,29 @@ export class TraderDaddy {
   async callTool<K extends ToolName>(name: K, args?: ToolArgs): Promise<ToolResponses[K]>;
   async callTool<T = unknown>(name: string, args?: ToolArgs): Promise<T>;
   async callTool(name: string, args: ToolArgs = {}): Promise<unknown> {
-    const cached = this.cache?.get(name, args);
+    const run = (): Promise<unknown> => this.transport.callTool(name, args);
+    const invoke = (): Promise<unknown> =>
+      this.backoffOpts ? withBackoff(run, this.backoffOpts) : run();
+
+    if (!this.cache) return invoke();
+
+    const cached = this.cache.get(name, args);
     if (cached !== undefined) return cached;
 
-    const run = (): Promise<unknown> => this.transport.callTool(name, args);
-    const value = this.backoffOpts ? await withBackoff(run, this.backoffOpts) : await run();
+    // Single-flight: fold concurrent identical calls into one request.
+    const pending = this.cache.getInflight(name, args);
+    if (pending !== undefined) return pending;
 
-    // Only cache tools the SDK knows a TTL for (all 12 named tools).
-    if (this.cache && name in TOOL_NAMES) {
-      this.cache.set(name as ToolName, args, value);
+    const promise = invoke();
+    this.cache.setInflight(name, args, promise);
+    try {
+      const value = await promise;
+      // Only cache tools the SDK knows a TTL for (all 12 named tools).
+      if (name in TOOL_NAMES) this.cache.set(name as ToolName, args, value);
+      return value;
+    } finally {
+      this.cache.clearInflight(name, args);
     }
-    return value;
   }
 
   // --- One method per tool -------------------------------------------------

@@ -58,6 +58,30 @@ def test_cache_disabled_by_default():
     assert transport.calls == 2
 
 
+class _SlowTransport:
+    """Delays so concurrent calls overlap in flight."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def call_tool(self, name: str, args: dict[str, Any] | None = None) -> Any:
+        self.calls += 1
+        await asyncio.sleep(0.01)
+        return {"n": self.calls}
+
+
+def test_cache_single_flights_concurrent_calls():
+    transport = _SlowTransport()
+    td = TraderDaddy(transport=transport, cache=True)
+
+    async def go():
+        return await asyncio.gather(td.market_stats(), td.market_stats())
+
+    a, b = _run(go())
+    assert a == b
+    assert transport.calls == 1
+
+
 def test_cache_key_distinguishes_args():
     transport = _CountingTransport()
     td = TraderDaddy(transport=transport, cache=True)
