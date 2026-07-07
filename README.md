@@ -7,6 +7,10 @@
 Part of the [TraderDaddy Pro](https://traderdaddy.pro) open-source family, alongside
 [DaddyBoard](https://github.com/mphinance/daddyboard) (the wall display).
 
+**Building another app in the family?** Start with the step-by-step
+[app playbook](docs/BUILDING-APPS.md) — the one pattern (SDK + a thin shell) plus
+a per-app guide for DaddyLens, DaddyBot, DaddyHome, and DaddyEmbed.
+
 - **Isomorphic** — runs in Node ≥18 **and** the browser. `fetch` only, zero runtime deps.
 - **Typed everywhere** — one method per tool, fully-typed responses, no `any`.
 - **Keyless demo mode** — `{ mock: true }` serves realistic fixtures with *identical types* to live.
