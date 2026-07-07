@@ -15,6 +15,7 @@ keyless demo mode::
 from __future__ import annotations
 
 from .backoff import backoff_delay_ms, with_backoff
+from .cache import DEFAULT_TTLS, ResponseCache
 from .client import TraderDaddy
 from .errors import (
     HttpError,
@@ -37,6 +38,8 @@ __all__ = [
     "MarketPhase",
     "with_backoff",
     "backoff_delay_ms",
+    "ResponseCache",
+    "DEFAULT_TTLS",
     "HttpTransport",
     "Transport",
     "DEFAULT_BASE_URL",
