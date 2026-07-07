@@ -11,13 +11,14 @@ family — every app is this SDK plus a thin shell:
   the reference consumer these internals were lifted from. *Built.*
 - **[DaddyBot](https://github.com/mphinance/daddybot)** — self-host Discord bot: six
   slash commands + a scheduled smart-money flow-alert loop. *Built.*
-- **[DaddyLens](https://github.com/mphinance/daddylens)** — browser extension that
-  annotates `$TICKERS` on any website. *Build brief.*
+- **[DaddyLens](https://github.com/mphinance/daddylens)** — MV3 browser extension that
+  annotates `$TICKERS` on any website (Chrome + Firefox). *Built.*
+- **[DaddyMCP](https://github.com/mphinance/daddymcp)** — one-click MCP connector
+  configs + a prompt library + runnable example agents. *Built.*
+- **[DaddyHome](https://github.com/mphinance/daddyhome)** — Home Assistant sensors
+  via the `traderdaddy` Python mirror; TRMNL e-ink plugin to come. *HA integration built.*
 - **[DaddyEmbed](https://github.com/mphinance/daddyembed)** — embeddable flow widget
-  for blogs and sites. *Build brief.*
-- **DaddyHome** — TRMNL e-ink + Home Assistant sensors, via the `traderdaddy`
-  Python mirror. *Build brief.*
-- **DaddyMCP** — one-click MCP connector configs + example agents. *Build brief.*
+  for blogs and sites. *Build brief (render layer buildable keyless).*
 
 **Building one?** Start with the step-by-step [app playbook](docs/BUILDING-APPS.md):
 the one pattern (SDK + a thin shell) plus a per-app guide.
