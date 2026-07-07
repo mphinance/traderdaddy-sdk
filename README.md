@@ -11,7 +11,8 @@ annotates `$TICKERS` on any website).
 
 **Building another app in the family?** Start with the step-by-step
 [app playbook](docs/BUILDING-APPS.md) — the one pattern (SDK + a thin shell) plus
-a per-app guide for DaddyLens, DaddyBot, DaddyHome, and DaddyEmbed.
+a per-app guide for DaddyLens, DaddyBot, DaddyHome, and
+[DaddyEmbed](https://github.com/mphinance/daddyembed).
 
 - **Isomorphic** — runs in Node ≥18 **and** the browser. `fetch` only, zero runtime deps.
 - **Typed everywhere** — one method per tool, fully-typed responses, no `any`.

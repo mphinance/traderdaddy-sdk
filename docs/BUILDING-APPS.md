@@ -178,6 +178,10 @@ LEGENDARY print).
 ### DaddyEmbed — public embed for someone else's site
 
 A widget a blogger drops onto their page. **This is the one that's different.**
+Its [build brief](https://github.com/mphinance/daddyembed) maps each widget to an
+SDK method (flow tape → `unusualActivity()`, vitals bar → `marketStats()`, gamma
+chip → `gexTicker()`, IV strip → `ivRank()`, sector heatmap → `sectorFlow()`) and
+covers the UMD `<script>` + React entry points.
 
 - **Key safety:** **public embed** — you **cannot** ship a `td_live_` key in the
   page. Two supported routes:
@@ -222,3 +226,6 @@ Two working references whenever a pattern here is unclear:
 - [`../examples/`](../examples/) — short, runnable, keyless snippets for each primitive
   (the flow tape, the gamma ladder, the market-hours poll loop, demo→live, backoff).
 - [DaddyBoard](https://github.com/mphinance/daddyboard) — a full app built on the SDK.
+
+App build briefs written against this SDK:
+[DaddyEmbed](https://github.com/mphinance/daddyembed) (public embed widgets).
