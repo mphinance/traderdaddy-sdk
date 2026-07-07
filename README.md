@@ -5,9 +5,10 @@
 > DaddyBot, …).
 
 Part of the [TraderDaddy Pro](https://traderdaddy.pro) open-source family, alongside
-[DaddyBoard](https://github.com/mphinance/daddyboard) (the wall display) and
+[DaddyBoard](https://github.com/mphinance/daddyboard) (the wall display),
 [DaddyLens](https://github.com/mphinance/daddylens) (the browser extension that
-annotates `$TICKERS` on any website).
+annotates `$TICKERS` on any website), and
+[DaddyBot](https://github.com/mphinance/daddybot) (the self-host Discord flow bot).
 
 **Building another app in the family?** Start with the step-by-step
 [app playbook](docs/BUILDING-APPS.md) — the one pattern (SDK + a thin shell) plus
@@ -161,6 +162,22 @@ The internals are ported from DaddyBoard's `src/` — `mcpClient` → `transport
 `poller`'s backoff → `withBackoff`, `marketHours` → `isMarketOpen`, and the mock
 fixtures → `@traderdaddy/sdk/mock`. See [DaddyBoard](https://github.com/mphinance/daddyboard)
 for the reference consumer.
+
+## Built on this SDK
+
+Working apps that show the "SDK + a thin shell" pattern end to end:
+
+- **[DaddyBoard](https://github.com/mphinance/daddyboard)** — the wall display; the
+  reference consumer the internals were lifted from.
+- **[DaddyBot](https://github.com/mphinance/daddybot)** — a self-host Discord bot:
+  six slash commands (`/vitals`, `/flow`, `/gex`, `/iv`, `/screener`, `/earnings`)
+  each mapping to one SDK method, plus a scheduled alert loop gated on
+  `isMarketOpen()` that dedupes on each print's `id` and colors embeds by `tierColor`.
+  Runs keyless in demo mode. The thinnest consumer — the first proof the SDK's shape
+  is right.
+
+Build briefs for the rest (DaddyLens, DaddyHome, DaddyEmbed) live in
+[`docs/BUILDING-APPS.md`](docs/BUILDING-APPS.md).
 
 ## License
 
