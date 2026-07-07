@@ -22,6 +22,11 @@ family — every app is this SDK plus a thin shell:
 **Building one?** Start with the step-by-step [app playbook](docs/BUILDING-APPS.md):
 the one pattern (SDK + a thin shell) plus a per-app guide.
 
+**New to code / vibe coding it?** Grab a ready-made prompt from the
+[prompt pack](docs/PROMPTS.md) and paste it into Claude Code / Cursor — it walks
+your AI through building an app demo-first. Agents working in this repo should
+read [CLAUDE.md](CLAUDE.md) for the ground-truth map.
+
 - **Isomorphic** — runs in Node ≥18 **and** the browser. `fetch` only, zero runtime deps.
 - **Typed everywhere** — one method per tool, fully-typed responses, no `any`.
 - **Keyless demo mode** — `{ mock: true }` serves realistic fixtures with *identical types* to live.

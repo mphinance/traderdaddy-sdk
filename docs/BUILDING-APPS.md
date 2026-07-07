@@ -14,6 +14,10 @@ DaddyBoard is that pattern's first proof: a Node daemon + a vanilla web shell.
 DaddyLens, DaddyBot, DaddyHome, and DaddyEmbed are the same SDK with a different
 shell. This guide shows the one pattern, then gives a per-app playbook.
 
+> **Prefer to have your AI build it?** [`PROMPTS.md`](PROMPTS.md) has copy-paste
+> prompts (one per app) that drive Claude Code / Cursor through this whole
+> playbook demo-first. This guide is the reference they follow.
+
 ---
 
 ## The two lines that matter
