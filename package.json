@@ -1,0 +1,55 @@
+{
+  "name": "@traderdaddy/sdk",
+  "version": "0.1.0",
+  "description": "Typed, isomorphic SDK for the public TraderDaddy Pro MCP API — the shared client that powers the daddy-* open-source family (DaddyBoard, DaddyLens, DaddyBot, …). Ships first-class keyless demo fixtures.",
+  "keywords": [
+    "traderdaddy",
+    "options-flow",
+    "unusual-options-activity",
+    "gamma-exposure",
+    "gex",
+    "mcp",
+    "trading",
+    "sdk"
+  ],
+  "homepage": "https://traderdaddy.pro",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mphinance/traderdaddy-sdk.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./mock": {
+      "types": "./dist/mock.d.ts",
+      "import": "./dist/mock.js",
+      "require": "./dist/mock.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  }
+}
