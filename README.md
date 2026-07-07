@@ -5,7 +5,9 @@
 > DaddyBot, …).
 
 Part of the [TraderDaddy Pro](https://traderdaddy.pro) open-source family, alongside
-[DaddyBoard](https://github.com/mphinance/daddyboard) (the wall display).
+[DaddyBoard](https://github.com/mphinance/daddyboard) (the wall display) and
+[DaddyLens](https://github.com/mphinance/daddylens) (the browser extension that
+annotates `$TICKERS` on any website).
 
 **Building another app in the family?** Start with the step-by-step
 [app playbook](docs/BUILDING-APPS.md) — the one pattern (SDK + a thin shell) plus
