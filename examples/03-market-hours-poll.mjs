@@ -35,7 +35,7 @@ console.log('\n  Three poll ticks (only fetches when open):');
 for (let i = 0; i < 3; i++) {
   if (isMarketOpen()) {
     const stats = await td.marketStats();
-    console.log(`    tick ${i + 1}: fetched — sentiment ${stats.overallSentiment}`);
+    console.log(`    tick ${i + 1}: fetched — SPY sentiment ${stats.spy_sentiment}`);
   } else {
     console.log(`    tick ${i + 1}: market closed — skipping fetch, serving last values`);
   }

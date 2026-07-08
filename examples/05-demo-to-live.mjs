@@ -24,9 +24,9 @@ const td = new TraderDaddy({
 console.log(`\n  Running in ${td.mock ? 'DEMO (fixtures, no key)' : 'LIVE'} mode\n`);
 
 const stats = await td.marketStats();
-console.log(`  Sentiment: ${stats.overallSentiment} (${stats.sentimentScore}/100)`);
-console.log(`  Largest trade: ${stats.largestTrade.ticker} ${stats.largestTrade.type} ` +
-  `$${stats.largestTrade.premium.toLocaleString('en-US')}`);
+console.log(`  SPY sentiment: ${stats.spy_sentiment} (P/C ${stats.spy_put_call_ratio})`);
+console.log(`  Largest trade: ${stats.largest_trade_symbol} ${stats.largest_trade_type} ` +
+  `$${stats.largest_trade_premium.toLocaleString('en-US')}`);
 
 // The cache means this second call returns instantly without another request.
 const again = await td.marketStats();

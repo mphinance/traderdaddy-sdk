@@ -26,8 +26,8 @@ def test_missing_api_key_raises():
 def test_market_stats():
     td = TraderDaddy(mock=True)
     data = _run(td.market_stats())
-    assert data["overallSentiment"] == "Bullish"
-    assert data["largestTrade"]["ticker"] == "NVDA"
+    assert data["spy_sentiment"] == "Bullish"
+    assert data["largest_trade_symbol"] == "NVDA260710C00185000"
 
 
 def test_unusual_activity_shape_and_aggregates():
@@ -77,9 +77,9 @@ def test_deepcopy_isolation():
     """Mutating one result must not bleed into the next call."""
     td = TraderDaddy(mock=True)
     first = _run(td.market_stats())
-    first["overallSentiment"] = "MUTATED"
+    first["spy_sentiment"] = "MUTATED"
     second = _run(td.market_stats())
-    assert second["overallSentiment"] == "Bullish"
+    assert second["spy_sentiment"] == "Bullish"
 
 
 def test_unknown_fixture_raises():

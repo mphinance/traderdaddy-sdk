@@ -28,7 +28,7 @@ test('mock mode needs no api key and returns typed fixtures', async () => {
   assert.equal(flow.aggregates.topTicker, 'NVDA');
 
   const stats = await td.marketStats();
-  assert.equal(stats.largestTrade.ticker, 'NVDA');
+  assert.equal(stats.largest_trade_symbol, 'NVDA260710C00185000');
 
   const gex = await td.gexTicker('QQQ');
   assert.equal(gex.symbol, 'QQQ');
@@ -50,10 +50,10 @@ test('live mode without an api key throws MissingApiKeyError', () => {
 test('mock transport deep-clones so callers cannot mutate shared fixtures', async () => {
   const t = new MockTransport();
   const a = await t.callTool('get_market_stats');
-  a.sentimentScore = -999;
+  a.spy_put_call_ratio = -999;
   const b = await t.callTool('get_market_stats');
-  assert.equal(b.sentimentScore, fixtures.get_market_stats.sentimentScore);
-  assert.notEqual(b.sentimentScore, -999);
+  assert.equal(b.spy_put_call_ratio, fixtures.get_market_stats.spy_put_call_ratio);
+  assert.notEqual(b.spy_put_call_ratio, -999);
 });
 
 test('withBackoff retries on RateLimitError then succeeds', async () => {

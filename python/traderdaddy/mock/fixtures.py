@@ -22,28 +22,20 @@ def _now() -> str:
 
 # --- get_market_stats -------------------------------------------------------
 get_market_stats = {
+    "spy_put_call_ratio": 0.78,
+    "qqq_put_call_ratio": 0.65,
+    "iwm_put_call_ratio": 1.12,
+    "spy_sentiment": "Bullish",
+    "qqq_sentiment": "Bullish",
+    "iwm_sentiment": "Bearish",
+    "largest_trade_premium": 3_840_000,
+    "largest_trade_symbol": "NVDA260710C00185000",
+    "largest_trade_strike": 185,
+    "largest_trade_expiry": "07/10/26",
+    "largest_trade_type": "CALL",
     "tradingDate": "2026-07-07",
-    "marketOpen": True,
     "timestamp": _now(),
-    "putCallRatioSPY": 0.78,
-    "putCallRatioQQQ": 0.65,
-    "putCallRatioIWM": 1.12,
-    "overallSentiment": "Bullish",
-    "sentimentScore": 72,
-    "dominantFlow": "calls",
-    "totalFlowPremium": 4_820_000,
-    "largestTrade": {
-        "ticker": "NVDA",
-        "type": "CALL",
-        "premium": 3_840_000,
-        "sentiment": "Bullish",
-        "tradeType": "sweep",
-        "score": 94,
-    },
-    "totalBullishPremium": 31_200_000,
-    "totalBearishPremium": 12_400_000,
-    "bullishBearishRatio": 2.52,
-    "activeAlerts": 7,
+    "marketOpen": True,
 }
 
 

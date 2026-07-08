@@ -22,31 +22,27 @@ export type Impact = 'high' | 'medium' | 'low' | (string & {});
 // get_market_stats
 // ---------------------------------------------------------------------------
 
-export interface LargestTrade {
-  ticker: string;
-  type: OptionType;
-  premium: number;
-  sentiment: Sentiment;
-  tradeType: TradeType;
-  score: number;
-}
-
+// NOTE: `get_market_stats` is the one legacy tool whose live payload is
+// snake_case (the rest of the API is camelCase). This type mirrors the *actual*
+// wire shape so `mock: true` stays byte-identical to live. It does NOT carry an
+// overall sentiment index, bull/bear ratio, or alert count — those never
+// existed on the wire; derive any composite from the three index P/C ratios +
+// sentiments below.
 export interface MarketStats {
+  spy_put_call_ratio: number;
+  qqq_put_call_ratio: number;
+  iwm_put_call_ratio: number;
+  spy_sentiment: Sentiment;
+  qqq_sentiment: Sentiment;
+  iwm_sentiment: Sentiment;
+  largest_trade_premium: number;
+  largest_trade_symbol: string;
+  largest_trade_strike: number;
+  largest_trade_expiry: string;
+  largest_trade_type: OptionType;
   tradingDate: string;
-  marketOpen: boolean;
   timestamp: string;
-  putCallRatioSPY: number;
-  putCallRatioQQQ: number;
-  putCallRatioIWM: number;
-  overallSentiment: Sentiment;
-  sentimentScore: number;
-  dominantFlow: FlowSide;
-  totalFlowPremium: number;
-  largestTrade: LargestTrade;
-  totalBullishPremium: number;
-  totalBearishPremium: number;
-  bullishBearishRatio: number;
-  activeAlerts: number;
+  marketOpen: boolean;
 }
 
 // ---------------------------------------------------------------------------

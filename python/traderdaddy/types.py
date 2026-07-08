@@ -15,31 +15,25 @@ FlowSide = Literal["calls", "puts"]
 
 
 # --- get_market_stats -------------------------------------------------------
-class LargestTrade(TypedDict):
-    ticker: str
-    type: OptionType
-    premium: float
-    sentiment: str
-    tradeType: str
-    score: float
-
-
+# NOTE: this legacy tool's live payload is snake_case and carries no overall
+# sentiment index, bull/bear ratio, or alert count — mirror the actual wire
+# shape so mock stays byte-identical to live. Derive any composite from the
+# three index P/C ratios + sentiments.
 class MarketStats(TypedDict):
+    spy_put_call_ratio: float
+    qqq_put_call_ratio: float
+    iwm_put_call_ratio: float
+    spy_sentiment: str
+    qqq_sentiment: str
+    iwm_sentiment: str
+    largest_trade_premium: float
+    largest_trade_symbol: str
+    largest_trade_strike: float
+    largest_trade_expiry: str
+    largest_trade_type: OptionType
     tradingDate: str
-    marketOpen: bool
     timestamp: str
-    putCallRatioSPY: float
-    putCallRatioQQQ: float
-    putCallRatioIWM: float
-    overallSentiment: str
-    sentimentScore: float
-    dominantFlow: FlowSide
-    totalFlowPremium: float
-    largestTrade: LargestTrade
-    totalBullishPremium: float
-    totalBearishPremium: float
-    bullishBearishRatio: float
-    activeAlerts: int
+    marketOpen: bool
 
 
 # --- get_unusual_activity ---------------------------------------------------
