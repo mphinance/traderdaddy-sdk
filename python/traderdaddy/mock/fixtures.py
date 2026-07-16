@@ -1,9 +1,13 @@
 """fixtures.py — realistic, typed demo fixtures.
 
-Ported from @traderdaddy/sdk's mock/fixtures.ts, covering all 12 MCP tools:
+Ported from @traderdaddy/sdk's mock/fixtures.ts, covering all 24 MCP tools:
     get_market_stats, get_unusual_activity, get_gex_overview, get_gex_ticker,
     get_sector_flow, get_put_call_ratios, get_iv_rank, get_earnings_flow,
-    get_economic_calendar, run_screener, get_strategy_ideas, get_edge_xray
+    get_economic_calendar, run_screener, get_strategy_ideas, get_edge_xray,
+    get_apex_levels, get_politician_trades, get_politician_trades_by_ticker,
+    get_institutional_activity, get_dividend_calendar, get_long_term_quality,
+    get_ipo_scanner, get_bounce_signals, get_bounce_score, get_conviction,
+    get_market_health, get_hedge_analysis
 
 Each name matches a tool; callables take the tool ``args`` dict. Values are
 deep-copied by ``MockTransport`` before return, so mutating a result is safe.
@@ -504,4 +508,301 @@ def get_edge_xray(args: dict[str, Any] | None = None) -> dict[str, Any]:
             "overallBias": "calls slightly rich, puts slightly cheap",
         },
         "timestamp": _now(),
+    }
+
+
+# --- get_apex_levels ---------------------------------------------------------
+def get_apex_levels(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    sym = str((args or {}).get("symbol", "SPY")).upper()
+    return {
+        "symbol": sym,
+        "spotPrice": 502.3,
+        "snapshotTime": _now(),
+        "mode": "single" if (args or {}).get("expiration") else "aggregate",
+        "expirationsUsed": ["2026-07-18", "2026-07-25", "2026-08-01"],
+        "availableExpirations": ["2026-07-18", "2026-07-25", "2026-08-01", "2026-08-15", "2026-09-19"],
+        "gammaFlip": 498.5,
+        "levels": [
+            {"strike": 505, "score": 100, "rank": 1, "netGEX": 1_240_000_000, "totalOI": 68_400, "isAboveSpot": True},
+            {"strike": 495, "score": 74, "rank": 2, "netGEX": -320_000_000, "totalOI": 91_200, "isAboveSpot": False},
+            {"strike": 510, "score": 52, "rank": 3, "netGEX": 480_000_000, "totalOI": 41_600, "isAboveSpot": True},
+            {"strike": 490, "score": 41, "rank": 4, "netGEX": -180_000_000, "totalOI": 55_800, "isAboveSpot": False},
+            {"strike": 500, "score": 38, "rank": 5, "netGEX": 92_000_000, "totalOI": 38_100, "isAboveSpot": False},
+        ],
+    }
+
+
+# --- get_politician_trades / get_politician_trades_by_ticker ----------------
+def get_politician_trades(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    tab = str((args or {}).get("tab", "top_portfolios"))
+    return {
+        "success": True,
+        "tab": tab,
+        "window_days": 30 if tab == "most_active" else 90,
+        "generated_at": _now(),
+        "entries": [
+            {"name": "A. Ramirez", "party": "Democrat", "chamber": "House", "totalEstimated": 2_400_000, "tradeCount": 18, "uniqueTickers": 12, "topTickers": ["NVDA", "MSFT", "GOOGL"], "lastTradeDate": "2026-07-01"},
+            {"name": "K. Whitfield", "party": "Republican", "chamber": "Senate", "totalEstimated": 1_850_000, "tradeCount": 9, "uniqueTickers": 7, "topTickers": ["XOM", "CVX"], "lastTradeDate": "2026-06-28"},
+            {"name": "T. Boone", "party": "Republican", "chamber": "House", "totalEstimated": 940_000, "tradeCount": 24, "uniqueTickers": 15, "topTickers": ["AAPL", "AMD", "TSLA"], "lastTradeDate": "2026-07-05"},
+            {"name": "S. Nakamura", "party": "Democrat", "chamber": "House", "totalEstimated": 610_000, "tradeCount": 6, "uniqueTickers": 5, "topTickers": ["JPM"], "lastTradeDate": "2026-06-20"},
+        ],
+    }
+
+
+def get_politician_trades_by_ticker(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    ticker = str((args or {}).get("ticker", "NVDA")).upper()
+    return {
+        "success": True,
+        "ticker": ticker,
+        "period_days": 90,
+        "total_trades": 2,
+        "trades": [
+            {
+                "id": f"a-ramirez_{ticker.lower()}_2026-07-01_buy",
+                "name": "A. Ramirez", "party": "Democrat", "chamber": "House",
+                "state_abbreviation": "CA", "state_name": "California",
+                "company": f"{ticker} Corp", "ticker": ticker,
+                "trade_date": "2026-07-01T00:00:00.000Z", "days_until_disclosure": 22,
+                "trade_type": "buy", "trade_amount": "100K-250K", "value_at_purchase": "$128.40",
+                "updated_at": _now(),
+            },
+            {
+                "id": f"t-boone_{ticker.lower()}_2026-06-15_sell",
+                "name": "T. Boone", "party": "Republican", "chamber": "House",
+                "state_abbreviation": "TX", "state_name": "Texas",
+                "company": f"{ticker} Corp", "ticker": ticker,
+                "trade_date": "2026-06-15T00:00:00.000Z", "days_until_disclosure": 30,
+                "trade_type": "sell", "trade_amount": "15K-50K", "value_at_purchase": "$121.10",
+                "updated_at": _now(),
+            },
+        ],
+    }
+
+
+# --- get_institutional_activity ----------------------------------------------
+def get_institutional_activity(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    limit = (args or {}).get("limit", 10)
+    flows = [
+        {"ticker": "SOXL", "sentiment": "Bullish", "total_premium": 27_800_000, "flow_count": 60},
+        {"ticker": "INTC", "sentiment": "Bullish", "total_premium": 20_900_000, "flow_count": 40},
+        {"ticker": "MU", "sentiment": "Bullish", "total_premium": 16_200_000, "flow_count": 35},
+        {"ticker": "PLTR", "sentiment": "Bullish", "total_premium": 12_400_000, "flow_count": 28},
+        {"ticker": "IWM", "sentiment": "Bearish", "total_premium": 5_400_000, "flow_count": 21},
+    ]
+    return {
+        "flows": flows[:limit],
+        "trading_date": _now(),
+        "is_current_day": True,
+        "timeframe": "today",
+    }
+
+
+# --- get_dividend_calendar ----------------------------------------------------
+def get_dividend_calendar(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    results = [
+        {"symbol": "PNC", "companyName": "PNC Financial Services Group Inc", "sector": "Banking", "exDate": "2026-07-20", "payDate": "2026-08-05", "dividendRate": 8, "dividendYield": 3.18},
+        {"symbol": "CAT", "companyName": "Caterpillar Inc", "sector": "Machinery", "exDate": "2026-07-20", "payDate": "2026-08-19", "dividendRate": 6.52, "dividendYield": 0.7},
+        {"symbol": "LOW", "companyName": "Lowe's Companies Inc", "sector": "Retail", "exDate": "2026-07-22", "payDate": "2026-08-05", "dividendRate": 5, "dividendYield": 2.41},
+        {"symbol": "PFE", "companyName": "Pfizer Inc", "sector": "Pharmaceuticals", "exDate": "2026-07-24", "payDate": "2026-09-01", "dividendRate": 1.72, "dividendYield": 7.09},
+        {"symbol": "O", "companyName": "Realty Income Corp", "sector": "Real Estate", "exDate": "2026-07-31", "payDate": "2026-08-14", "dividendRate": 3.25, "dividendYield": 5.1},
+    ]
+    limit = (args or {}).get("limit", 200)
+    sliced = results[:limit]
+    return {"count": len(sliced), "from": "2026-07-16", "days": (args or {}).get("days", 60), "results": sliced}
+
+
+# --- get_long_term_quality ----------------------------------------------------
+_QUALITY_ROWS = [
+    {"symbol": "MU", "companyName": "Micron Technology Inc", "sector": "Semiconductors", "qualityScore": 96, "pe": 22.1, "pb": 11.1, "beta": 2.21, "marketCap": 1_058_000_000_000, "netMargin": 55.9, "operatingMargin": 65.6, "grossMargin": 72.6, "roe": 70.6, "roa": 49.9, "revenueGrowthYoY": 167.0, "epsGrowthYoY": 700.7, "dividendYield": 0.51, "dividendRate": 0.6, "payoutRatio": 1.1, "debtToEquity": 0.06, "currentRatio": 3.42, "interestCoverage": 20.1, "week52High": 1255, "week52Low": 103.4, "updatedAt": _now()},
+    {"symbol": "AAPL", "companyName": "Apple Inc", "sector": "Technology", "qualityScore": 81, "pe": 39.2, "pb": 45.1, "beta": 1.1, "marketCap": 4_624_000_000_000, "netMargin": 27.2, "operatingMargin": 32.6, "grossMargin": 47.9, "roe": 146.7, "roa": 34.0, "revenueGrowthYoY": 12.8, "epsGrowthYoY": 29.0, "dividendYield": 0.32, "dividendRate": 1.08, "payoutRatio": 12.7, "debtToEquity": 0.8, "currentRatio": 1.07, "interestCoverage": 622.5, "week52High": 323.5, "week52Low": 201.5, "updatedAt": _now()},
+    {"symbol": "JNJ", "companyName": "Johnson & Johnson", "sector": "Pharmaceuticals", "qualityScore": 89, "pe": 17.4, "pb": 5.8, "beta": 0.54, "marketCap": 412_000_000_000, "netMargin": 21.3, "operatingMargin": 26.1, "grossMargin": 68.2, "roe": 33.4, "roa": 12.7, "revenueGrowthYoY": 6.1, "epsGrowthYoY": 8.9, "dividendYield": 3.1, "dividendRate": 5.16, "payoutRatio": 44.2, "debtToEquity": 0.45, "currentRatio": 1.34, "interestCoverage": 28.6, "week52High": 178.2, "week52Low": 142.1, "updatedAt": _now()},
+]
+
+
+def get_long_term_quality(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    args = args or {}
+    if args.get("symbol"):
+        sym = str(args["symbol"]).upper()
+        row = next((r for r in _QUALITY_ROWS if r["symbol"] == sym), None)
+        if row is None:
+            row = {**_QUALITY_ROWS[0], "symbol": sym}
+        return {
+            **row,
+            "nextExDate": "2026-08-10",
+            "nextPayDate": "2026-08-24",
+            "nextEarningsDate": "2026-10-29",
+            "live": not any(r["symbol"] == sym for r in _QUALITY_ROWS),
+        }
+    limit = args.get("limit", 100)
+    return {"count": len(_QUALITY_ROWS), "results": _QUALITY_ROWS[:limit]}
+
+
+# --- get_ipo_scanner -----------------------------------------------------------
+def get_ipo_scanner(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    args = args or {}
+    view = args.get("view", "upcoming")
+    as_of = _now()
+    if view == "recent":
+        return {
+            "data": [
+                {
+                    "id": 1076, "company": "DPC Holdings Ltd", "companyKey": "dpc", "symbol": "DPC", "exchange": "NYSE", "status": "priced",
+                    "priceRange": "33.00", "sharesOffered": 27_858_585, "expectedDate": "2026-06-25", "firstTradeDate": "2026-06-25",
+                    "ipoPrice": 33, "secForm": None, "secFilingDate": None, "sources": ["FINNHUB", "NASDAQ"], "sourceUrls": [],
+                    "primaryLink": None, "cik": None, "accession": None, "lifecycleStage": "Calendar", "currentBucket": "Recent",
+                    "withdrawn": False, "firstSeenAt": "2026-05-28T10:00:00.000Z", "lastSeenAt": as_of, "updatedAt": as_of,
+                    "currentPrice": 46.75, "pctFromIpo": 41.67, "pctFromFirstClose": -0.28, "day1Volume": 18_650_348,
+                    "avgVolume30d": 3_119_851, "setupAttentionScore": 63, "setupAttentionTier": "MED", "perfUpdatedAt": as_of,
+                },
+            ],
+            "asOf": as_of, "sourceCount": 2,
+        }
+    if view == "radar":
+        return {
+            "data": [
+                {"company": "Nimbus AI", "companyKey": "nimbusai", "estValuationB": 42, "sector": "AI infrastructure", "evidenceScore": 84, "evidenceCount": 12, "lastSignalDate": as_of, "topDrivers": ["confidential_filing", "named_underwriters"], "signalConfidentialFiling": 1, "signalPublicFiling": 0, "signalConfirmedIpoIntent": 0, "signalTargetTiming": 1, "signalValuationReported": 1, "signalNamedUnderwriters": 1, "signalMultipleCredibleReports": 1},
+            ],
+            "asOf": as_of, "sourceCount": 1,
+        }
+    if view == "transitions":
+        return {
+            "data": [
+                {"id": 1710, "companyKey": "descartes", "company": "Descartes Systems Group Inc", "symbol": None, "eventType": "sec_filing", "fromBucket": None, "toBucket": None, "meta": {"form_type": "F-1"}, "occurredAt": as_of},
+            ],
+            "asOf": as_of, "sourceCount": 1,
+        }
+    return {
+        "data": [
+            {"id": 6894, "company": "Csquare, Inc.", "companyKey": "csquare", "symbol": "CSQR", "exchange": "NYSE", "status": "expected", "priceRange": "23.00-27.00", "sharesOffered": 50_000_000, "expectedDate": "2026-07-18", "firstTradeDate": None, "ipoPrice": None, "secForm": None, "secFilingDate": None, "sources": ["FINNHUB", "NASDAQ"], "sourceUrls": [], "primaryLink": None, "cik": None, "accession": None, "lifecycleStage": "Calendar", "currentBucket": "Upcoming", "withdrawn": False, "firstSeenAt": "2026-06-27T10:00:00.000Z", "lastSeenAt": as_of, "updatedAt": as_of},
+        ],
+        "asOf": as_of, "sourceCount": 2,
+    }
+
+
+# --- get_bounce_signals / get_bounce_score ------------------------------------
+def _bounce_indicators(overbought: bool) -> dict[str, Any]:
+    return {
+        "bbPctb": 0.94 if overbought else 0.06, "bbScore": 1, "bbState": "overbought" if overbought else "oversold",
+        "kcScore": 1, "kcState": "above_upper" if overbought else "below_lower",
+        "cciScore": 1, "cciState": "extended", "cciValue": 128.5 if overbought else -132.1,
+        "rsiScore": 1, "rsiState": "overbought" if overbought else "oversold", "rsiValue": 87.4 if overbought else 14.2,
+        "volRatio": 1.14, "volScore": 0, "volState": "normal",
+        "macdScore": 0, "macdState": "neutral", "signalDate": "2026-07-15",
+        "stochScore": 1, "stochState": "overbought" if overbought else "oversold",
+        "willrScore": 0, "willrState": "neutral", "willrValue": -51.9 if overbought else -8.6,
+        "rsiDivBonus": 0, "stochDValue": 100 if overbought else 2, "stochKValue": 100 if overbought else 2,
+        "compositeScore": 5, "compositeYesterday": 1,
+    }
+
+
+def get_bounce_signals(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    args = args or {}
+    direction = args.get("direction", "all")
+    all_signals = [
+        {"id": 13795, "ticker": "BABA", "signalType": "bounce_top", "price": 117.74, "changePercent": 4.83, "volume": 17_875_485, "avgVolume": 15_049_434, "indicatorData": _bounce_indicators(True), "source": "leveraged", "detectedAt": _now()},
+        {"id": 13780, "ticker": "RIOT", "signalType": "bounce_bottom", "price": 9.12, "changePercent": -6.4, "volume": 22_340_112, "avgVolume": 18_902_400, "indicatorData": _bounce_indicators(False), "source": "small-cap", "detectedAt": _now()},
+    ]
+    if direction == "top":
+        signals = [s for s in all_signals if s["signalType"] == "bounce_top"]
+    elif direction == "bottom":
+        signals = [s for s in all_signals if s["signalType"] == "bounce_bottom"]
+    else:
+        signals = all_signals
+    return {"signals": signals, "total": len(signals), "page": args.get("page", 1), "pageSize": args.get("pageSize", 50), "hasMore": False}
+
+
+def get_bounce_score(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    ticker = str((args or {}).get("symbol", "AAPL")).upper()
+    return {
+        "ticker": ticker, "price": 227.5, "changePercent": 4.01, "compositeScore": 4, "compositeYesterday": 2,
+        "kcScore": 1, "rsiScore": 1, "rsiDivBonus": 0, "stochScore": 1, "bbScore": 0, "macdScore": 0, "volScore": 0, "willrScore": 1, "cciScore": 0,
+        "rsiValue": 80.3, "stochKValue": 100, "stochDValue": 100, "bbPctb": 0.87, "volRatio": 0.86, "willrValue": -2.2, "cciValue": 104.7,
+        "kcState": "above_upper", "rsiState": "overbought", "stochState": "overbought", "bbState": "neutral", "macdState": "neutral", "volState": "normal", "willrState": "overbought", "cciState": "normal",
+    }
+
+
+# --- get_conviction -------------------------------------------------------------
+def get_conviction(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    args = args or {}
+    if args.get("symbol"):
+        return {
+            "ticker": str(args["symbol"]).upper(),
+            "score": 55,
+            "breakdown": {"watchlistMomentum": 53, "chatSentiment": 57},
+            "asOf": _now(),
+        }
+
+    def entry(ticker: str, score: int, adds: int) -> dict[str, Any]:
+        return {"ticker": ticker, "score": score, "adds24h": adds, "removes24h": 0, "net24h": adds}
+
+    return {
+        "score": 80,
+        "breakdown": {"watchlistMomentum": 98, "chatSentiment": 56, "discordReactions": 80},
+        "topTickers": [entry("RKLB", 53, 2), entry("PLTR", 53, 2), entry("AAPL", 53, 2), entry("NFLX", 52, 1)],
+        "topAdds": [
+            {"ticker": "PLTR", "score": 63, "adds24h": 2, "removes24h": 0, "net24h": 2, "net7d": 8},
+            {"ticker": "NVDA", "score": 58, "adds24h": 1, "removes24h": 0, "net24h": 1, "net7d": 5},
+        ],
+        "asOf": _now(),
+    }
+
+
+# --- get_market_health -----------------------------------------------------------
+get_market_health = {
+    "signals": [
+        {"id": "risk_appetite_sphb_splv", "label": "SPHB / SPLV Ratio", "category": "RISK APPETITE", "status": "ALERT", "summary": "High-beta lagging defensive; risk appetite fading.", "dataPoints": ["Ratio 1.944 vs 20d MA 2.002", "20d slope -4.7%"], "asOf": _now(), "detail": {"ratio": 1.94, "ma20": 2.0, "slope20Pct": -4.67}},
+        {"id": "credit_hyg_jnk", "label": "HYG / JNK Credit ETFs", "category": "CREDIT", "status": "CLEAR", "summary": "Both HY ETFs trading above 50d MA.", "dataPoints": ["HYG 80.10 vs 50d MA 79.82", "JNK 96.40 vs 50d MA 96.13"], "asOf": _now(), "detail": {"hygLast": 80.1, "hygMa50": 79.82, "jnkLast": 96.4, "jnkMa50": 96.13}},
+        {"id": "vol_vix_spx_diverge", "label": "VIX vs SPX Divergence", "category": "VOL REGIME", "status": "CLEAR", "summary": "Vol regime aligned with tape direction.", "dataPoints": ["VIX 5d -7.3% (now 15.67)", "SPY 5d 1.3% (now 502.3)"], "asOf": _now(), "detail": {"vixLast": 15.67, "vix5dPct": -7.28, "spyLast": 502.3, "spy5dPct": 1.26}},
+        {"id": "leadership_semis_failures", "label": "Semis Breakout Failures", "category": "LEADERSHIP", "status": "CLEAR", "summary": "No recent SMH breakout failures.", "dataPoints": ["SMH last 590.77", "Failures in last 10 sessions: 0"], "asOf": _now(), "detail": {"failures": 0, "lastClose": 590.77}},
+    ],
+    "alertCount": 1,
+    "watchCount": 0,
+    "availableCount": 4,
+    "totalCount": 7,
+    "generatedAt": _now(),
+    "compositeScore": {"value": 1, "max": 7, "label": "LOW"},
+}
+
+
+# --- get_hedge_analysis -----------------------------------------------------------
+def get_hedge_analysis(args: dict[str, Any] | None = None) -> dict[str, Any]:
+    sym = str((args or {}).get("symbol", "AAPL")).upper()
+    spot = 227.5
+    return {
+        "symbol": sym,
+        "spot": spot,
+        "expiration": "2026-08-28",
+        "dte": 44,
+        "downsideMove": 15.5,
+        "downsideBasis": "expected_move",
+        "downsideDollars": 1550,
+        "hedges": [
+            {
+                "kind": "put_spread_collar",
+                "legs": [
+                    {"type": "put", "side": "long", "strike": 220, "qty": 1, "premium": 4.7},
+                    {"type": "put", "side": "short", "strike": 205, "qty": 1, "premium": 1.35},
+                    {"type": "call", "side": "short", "strike": 240, "qty": 1, "premium": 4.05},
+                ],
+                "cost": -70,
+                "dollarsProtected": 1500,
+                "costPerDollarProtected": -0.05,
+                "breakevenAtExpiry": 227.7,
+                "positionDelta": 42.1,
+                "rationale": "Buy the $220 / sell the $205 put spread and sell the $240 call — cheapest protection, floor stops working below $205",
+            },
+            {
+                "kind": "collar",
+                "legs": [
+                    {"type": "put", "side": "long", "strike": 220, "qty": 1, "premium": 4.7},
+                    {"type": "call", "side": "short", "strike": 240, "qty": 1, "premium": 4.05},
+                ],
+                "cost": 65,
+                "dollarsProtected": 1500,
+                "costPerDollarProtected": 0.04,
+                "breakevenAtExpiry": None,
+                "positionDelta": 33.9,
+                "rationale": "Buy the $220 put and sell the $240 call — finances the downside floor by capping gains above $240",
+            },
+        ],
     }

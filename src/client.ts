@@ -13,14 +13,33 @@ import { MissingApiKeyError } from './errors.js';
 import { MockTransport } from './mock/index.js';
 import { HttpTransport, type FetchLike, type Transport } from './transport.js';
 import type {
+  ApexLevels,
+  BounceScore,
+  BounceSignals,
+  ConvictionMarket,
+  ConvictionTicker,
+  DividendCalendar,
   EarningsFlow,
   EconomicCalendar,
   EdgeXray,
   GexOverview,
   GexTicker,
+  HedgeAnalysis,
+  InstitutionalActivity,
+  IpoRadar,
+  IpoRecent,
+  IpoScannerView,
+  IpoTransitions,
+  IpoUpcoming,
   IvRank,
+  MarketHealth,
   MarketStats,
+  PoliticianTrades,
+  PoliticianTradesByTicker,
+  PoliticianTradesTab,
   PutCallRatios,
+  QualityList,
+  QualitySingle,
   ScreenerResult,
   SectorFlow,
   StrategyIdeas,
@@ -191,6 +210,94 @@ export class TraderDaddy {
   economicCalendar(): Promise<EconomicCalendar> {
     return this.callTool('get_economic_calendar');
   }
+
+  /** Composite "magnet" ranking of option strikes — where price is most strongly pinned/attracted. */
+  apexLevels(symbol: string, opts: { expiration?: string } = {}): Promise<ApexLevels> {
+    return this.callTool('get_apex_levels', { symbol, ...prune(opts) });
+  }
+
+  /** Congressional stock-disclosure leaderboard ("Power Players"). */
+  politicianTrades(
+    opts: { tab?: PoliticianTradesTab; window?: number; limit?: number } = {},
+  ): Promise<PoliticianTrades> {
+    return this.callTool('get_politician_trades', prune(opts));
+  }
+
+  /** All disclosed congressional trades for a single ticker. */
+  politicianTradesByTicker(ticker: string, opts: { days?: number } = {}): Promise<PoliticianTradesByTicker> {
+    return this.callTool('get_politician_trades_by_ticker', { ticker, ...prune(opts) });
+  }
+
+  /** Most actively-traded tickers by institutional options-flow volume (ex index ETFs / MAG7). */
+  institutionalActivity(opts: { limit?: number } = {}): Promise<InstitutionalActivity> {
+    return this.callTool('get_institutional_activity', prune(opts));
+  }
+
+  /** Upcoming ex-dividend calendar across the optionable universe. */
+  dividendCalendar(opts: { from?: string; days?: number; limit?: number } = {}): Promise<DividendCalendar> {
+    return this.callTool('get_dividend_calendar', prune(opts));
+  }
+
+  /** Fundamental quality + dividend screener for a single ticker. */
+  longTermQuality(symbol: string): Promise<QualitySingle>;
+  /** Fundamental quality + dividend screener — ranked list over the universe. */
+  longTermQuality(
+    opts?: { minScore?: number; minDivYield?: number; sector?: string; sort?: 'score' | 'divYield' | 'marketCap' | 'pe'; limit?: number },
+  ): Promise<QualityList>;
+  longTermQuality(
+    arg?: string | { minScore?: number; minDivYield?: number; sector?: string; sort?: string; limit?: number },
+  ): Promise<QualityList | QualitySingle> {
+    if (typeof arg === 'string') {
+      return this.callTool('get_long_term_quality', { symbol: arg });
+    }
+    return this.callTool('get_long_term_quality', prune(arg ?? {}));
+  }
+
+  /** IPO Scanner — scheduled/expected IPOs. */
+  ipoScanner(view: 'upcoming', opts?: { from?: string; to?: string; limit?: number }): Promise<IpoUpcoming>;
+  /** IPO Scanner — recently-listed names with performance since IPO. */
+  ipoScanner(view: 'recent', opts?: { days?: number; limit?: number }): Promise<IpoRecent>;
+  /** IPO Scanner — still-private companies ranked by Evidence Score. */
+  ipoScanner(view: 'radar', opts?: { minScore?: number; limit?: number }): Promise<IpoRadar>;
+  /** IPO Scanner — lifecycle event log (bucket changes, withdrawals). */
+  ipoScanner(view: 'transitions', opts?: { limit?: number; sinceHours?: number }): Promise<IpoTransitions>;
+  ipoScanner(view: IpoScannerView, opts: Record<string, unknown> = {}): Promise<unknown> {
+    return this.callTool('get_ipo_scanner', { view, ...prune(opts) });
+  }
+
+  /** Bounce Finder screener: recently detected oversold-bounce / overbought-fade signals. */
+  bounceSignals(
+    opts: { direction?: 'all' | 'top' | 'bottom'; page?: number; pageSize?: number } = {},
+  ): Promise<BounceSignals> {
+    return this.callTool('get_bounce_signals', prune(opts));
+  }
+
+  /** On-demand oversold/overbought bounce composite score for a single ticker. */
+  bounceScore(symbol: string): Promise<BounceScore> {
+    return this.callTool('get_bounce_score', { symbol });
+  }
+
+  /** Market-wide Community Conviction gauge, with a top-tickers leaderboard. */
+  conviction(): Promise<ConvictionMarket>;
+  /** Per-ticker Community Conviction gauge. */
+  conviction(symbol: string): Promise<ConvictionTicker>;
+  conviction(symbol?: string): Promise<ConvictionMarket | ConvictionTicker> {
+    return this.callTool('get_conviction', symbol ? { symbol } : {});
+  }
+
+  /** Market Health confluence: 7 macro-regime detectors blended into a composite risk score. */
+  marketHealth(): Promise<MarketHealth> {
+    return this.callTool('get_market_health');
+  }
+
+  /** Ranked downside-protection structures (protective put, collar, put-spread collar, bear put spread) for a share position. */
+  hedgeAnalysis(
+    symbol: string,
+    shares: number,
+    opts: { basis?: number; atr?: number; limit?: number } = {},
+  ): Promise<HedgeAnalysis> {
+    return this.callTool('get_hedge_analysis', { symbol, shares, ...prune(opts) });
+  }
 }
 
 /** Drop `undefined` values so they don't override method defaults. */
@@ -202,7 +309,7 @@ function prune<T extends Record<string, unknown>>(obj: T): Partial<T> {
   return out;
 }
 
-/** The 12 tool names the SDK knows, used to gate caching. */
+/** The tool names the SDK knows, used to gate caching. */
 const TOOL_NAMES: Record<ToolName, true> = {
   get_market_stats: true,
   get_unusual_activity: true,
@@ -216,4 +323,16 @@ const TOOL_NAMES: Record<ToolName, true> = {
   get_edge_xray: true,
   get_earnings_flow: true,
   get_economic_calendar: true,
+  get_apex_levels: true,
+  get_politician_trades: true,
+  get_politician_trades_by_ticker: true,
+  get_institutional_activity: true,
+  get_dividend_calendar: true,
+  get_long_term_quality: true,
+  get_ipo_scanner: true,
+  get_bounce_signals: true,
+  get_bounce_score: true,
+  get_conviction: true,
+  get_market_health: true,
+  get_hedge_analysis: true,
 };

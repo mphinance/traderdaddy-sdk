@@ -25,7 +25,7 @@ from .errors import MissingApiKeyError
 from .mock import MockTransport
 from .transport import DEFAULT_BASE_URL, DEFAULT_TIMEOUT, HttpTransport, Transport
 
-#: The 12 tool names the SDK knows, used to gate caching.
+#: The tool names the SDK knows, used to gate caching.
 _TOOL_NAMES = frozenset(DEFAULT_TTLS)
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -181,6 +181,162 @@ class TraderDaddy:
     async def economic_calendar(self) -> t.EconomicCalendar:
         """Upcoming macroeconomic calendar."""
         return await self.call_tool("get_economic_calendar")
+
+    async def apex_levels(
+        self, symbol: str, *, expiration: str | None = None
+    ) -> t.ApexLevels:
+        """Composite "magnet" ranking of option strikes — where price is most
+        strongly pinned/attracted."""
+        args: dict[str, Any] = {"symbol": symbol}
+        if expiration is not None:
+            args["expiration"] = expiration
+        return await self.call_tool("get_apex_levels", args)
+
+    async def politician_trades(
+        self,
+        *,
+        tab: str | None = None,
+        window: int | None = None,
+        limit: int | None = None,
+    ) -> t.PoliticianTrades:
+        """Congressional stock-disclosure leaderboard ("Power Players")."""
+        args: dict[str, Any] = {}
+        if tab is not None:
+            args["tab"] = tab
+        if window is not None:
+            args["window"] = window
+        if limit is not None:
+            args["limit"] = limit
+        return await self.call_tool("get_politician_trades", args)
+
+    async def politician_trades_by_ticker(
+        self, ticker: str, *, days: int | None = None
+    ) -> t.PoliticianTradesByTicker:
+        """All disclosed congressional trades for a single ticker."""
+        args: dict[str, Any] = {"ticker": ticker}
+        if days is not None:
+            args["days"] = days
+        return await self.call_tool("get_politician_trades_by_ticker", args)
+
+    async def institutional_activity(
+        self, *, limit: int | None = None
+    ) -> t.InstitutionalActivity:
+        """Most actively-traded tickers by institutional options-flow volume
+        (ex index ETFs / MAG7)."""
+        args: dict[str, Any] = {}
+        if limit is not None:
+            args["limit"] = limit
+        return await self.call_tool("get_institutional_activity", args)
+
+    async def dividend_calendar(
+        self,
+        *,
+        from_: str | None = None,
+        days: int | None = None,
+        limit: int | None = None,
+    ) -> t.DividendCalendar:
+        """Upcoming ex-dividend calendar across the optionable universe."""
+        args: dict[str, Any] = {}
+        if from_ is not None:
+            args["from"] = from_
+        if days is not None:
+            args["days"] = days
+        if limit is not None:
+            args["limit"] = limit
+        return await self.call_tool("get_dividend_calendar", args)
+
+    async def long_term_quality(
+        self,
+        symbol: str | None = None,
+        *,
+        min_score: float | None = None,
+        min_div_yield: float | None = None,
+        sector: str | None = None,
+        sort: str | None = None,
+        limit: int | None = None,
+    ) -> t.QualityList | t.QualitySingle:
+        """Fundamental quality + dividend screener. Pass ``symbol`` for a
+        single ticker, or omit it for a ranked list over the universe."""
+        if symbol is not None:
+            return await self.call_tool("get_long_term_quality", {"symbol": symbol})
+        args: dict[str, Any] = {}
+        if min_score is not None:
+            args["minScore"] = min_score
+        if min_div_yield is not None:
+            args["minDivYield"] = min_div_yield
+        if sector is not None:
+            args["sector"] = sector
+        if sort is not None:
+            args["sort"] = sort
+        if limit is not None:
+            args["limit"] = limit
+        return await self.call_tool("get_long_term_quality", args)
+
+    async def ipo_scanner(
+        self, view: str, **opts: Any
+    ) -> t.IpoUpcoming | t.IpoRecent | t.IpoRadar | t.IpoTransitions:
+        """IPO Scanner. ``view`` is one of ``upcoming``, ``recent``,
+        ``radar``, ``transitions``; ``opts`` are view-specific filters."""
+        args: dict[str, Any] = {"view": view}
+        args.update({k: v for k, v in opts.items() if v is not None})
+        return await self.call_tool("get_ipo_scanner", args)
+
+    async def bounce_signals(
+        self,
+        *,
+        direction: str | None = None,
+        page: int | None = None,
+        page_size: int | None = None,
+    ) -> t.BounceSignals:
+        """Bounce Finder screener: recently detected oversold-bounce /
+        overbought-fade signals."""
+        args: dict[str, Any] = {}
+        if direction is not None:
+            args["direction"] = direction
+        if page is not None:
+            args["page"] = page
+        if page_size is not None:
+            args["pageSize"] = page_size
+        return await self.call_tool("get_bounce_signals", args)
+
+    async def bounce_score(self, symbol: str) -> t.BounceScore:
+        """On-demand oversold/overbought bounce composite score for a single
+        ticker."""
+        return await self.call_tool("get_bounce_score", {"symbol": symbol})
+
+    async def conviction(
+        self, symbol: str | None = None
+    ) -> t.ConvictionMarket | t.ConvictionTicker:
+        """Community Conviction gauge. Pass ``symbol`` for a per-ticker
+        gauge, or omit it for the market-wide gauge + top-tickers leaderboard."""
+        return await self.call_tool(
+            "get_conviction", {"symbol": symbol} if symbol else {}
+        )
+
+    async def market_health(self) -> t.MarketHealth:
+        """Market Health confluence: 7 macro-regime detectors blended into a
+        composite risk score."""
+        return await self.call_tool("get_market_health")
+
+    async def hedge_analysis(
+        self,
+        symbol: str,
+        shares: int,
+        *,
+        basis: float | None = None,
+        atr: float | None = None,
+        limit: int | None = None,
+    ) -> t.HedgeAnalysis:
+        """Ranked downside-protection structures (protective put, collar,
+        put-spread collar, bear put spread) for a share position."""
+        args: dict[str, Any] = {"symbol": symbol, "shares": shares}
+        if basis is not None:
+            args["basis"] = basis
+        if atr is not None:
+            args["atr"] = atr
+        if limit is not None:
+            args["limit"] = limit
+        return await self.call_tool("get_hedge_analysis", args)
 
     # --- lifecycle ----------------------------------------------------------
     async def aclose(self) -> None:

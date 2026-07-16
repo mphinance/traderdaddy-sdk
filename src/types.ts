@@ -405,6 +405,448 @@ export interface EdgeXray {
 }
 
 // ---------------------------------------------------------------------------
+// get_apex_levels
+// ---------------------------------------------------------------------------
+
+export interface ApexLevel {
+  strike: number;
+  /** 0–100, dominant magnet = 100. */
+  score: number;
+  /** 1 = dominant magnet. */
+  rank: number;
+  netGEX: number;
+  totalOI: number;
+  isAboveSpot: boolean;
+}
+
+export interface ApexLevels {
+  symbol: string;
+  spotPrice: number;
+  snapshotTime: string;
+  mode: 'aggregate' | 'single' | (string & {});
+  expirationsUsed: string[];
+  availableExpirations: string[];
+  /** Simulated price where net gamma crosses zero. */
+  gammaFlip: number;
+  levels: ApexLevel[];
+}
+
+// ---------------------------------------------------------------------------
+// get_politician_trades / get_politician_trades_by_ticker
+// ---------------------------------------------------------------------------
+
+export type PoliticianTradesTab = 'top_portfolios' | 'most_active' | (string & {});
+
+export interface PoliticianPortfolioEntry {
+  name: string;
+  party: string;
+  chamber: 'House' | 'Senate' | (string & {});
+  totalEstimated: number;
+  tradeCount: number;
+  uniqueTickers: number;
+  topTickers: string[];
+  lastTradeDate: string;
+}
+
+export interface PoliticianTrades {
+  success: boolean;
+  tab: PoliticianTradesTab;
+  window_days: number;
+  generated_at: string;
+  entries: PoliticianPortfolioEntry[];
+}
+
+export interface PoliticianTrade {
+  id: string;
+  name: string;
+  party: string;
+  chamber: 'House' | 'Senate' | (string & {});
+  state_abbreviation: string;
+  state_name: string;
+  company: string;
+  ticker: string;
+  trade_date: string;
+  days_until_disclosure: number;
+  trade_type: 'buy' | 'sell' | (string & {});
+  trade_amount: string;
+  value_at_purchase: string;
+  updated_at: string;
+}
+
+export interface PoliticianTradesByTicker {
+  success: boolean;
+  ticker: string;
+  period_days: number;
+  total_trades: number;
+  trades: PoliticianTrade[];
+}
+
+// ---------------------------------------------------------------------------
+// get_institutional_activity
+// ---------------------------------------------------------------------------
+
+export interface InstitutionalFlow {
+  ticker: string;
+  sentiment: Sentiment;
+  total_premium: number;
+  flow_count: number;
+}
+
+export interface InstitutionalActivity {
+  flows: InstitutionalFlow[];
+  trading_date: string;
+  is_current_day: boolean;
+  timeframe: string;
+}
+
+// ---------------------------------------------------------------------------
+// get_dividend_calendar
+// ---------------------------------------------------------------------------
+
+export interface DividendEvent {
+  symbol: string;
+  companyName: string;
+  sector: string;
+  exDate: string;
+  payDate: string;
+  dividendRate: number;
+  dividendYield: number;
+}
+
+export interface DividendCalendar {
+  count: number;
+  from: string;
+  days: number;
+  results: DividendEvent[];
+}
+
+// ---------------------------------------------------------------------------
+// get_long_term_quality
+// ---------------------------------------------------------------------------
+
+export interface QualityRow {
+  symbol: string;
+  companyName: string;
+  sector: string;
+  /** 0–100 composite: profitability + balance-sheet safety + valuation + growth + payout safety. */
+  qualityScore: number;
+  pe: number;
+  pb: number;
+  beta: number;
+  marketCap: number;
+  netMargin: number;
+  operatingMargin: number;
+  grossMargin: number;
+  roe: number;
+  roa: number;
+  revenueGrowthYoY: number;
+  epsGrowthYoY: number;
+  dividendYield: number | null;
+  dividendRate: number;
+  payoutRatio: number | null;
+  debtToEquity: number;
+  currentRatio: number;
+  interestCoverage: number;
+  week52High: number;
+  week52Low: number;
+  updatedAt: string;
+}
+
+export interface QualityList {
+  count: number;
+  results: QualityRow[];
+}
+
+export interface QualitySingle extends QualityRow {
+  nextExDate: string | null;
+  nextPayDate: string | null;
+  nextEarningsDate: string | null;
+  /** True when this row came from a live fundamentals fetch, not the nightly table. */
+  live: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// get_ipo_scanner
+// ---------------------------------------------------------------------------
+
+export type IpoScannerView = 'upcoming' | 'recent' | 'radar' | 'transitions';
+
+export interface IpoUpcomingRow {
+  id: number;
+  company: string;
+  companyKey: string;
+  symbol: string | null;
+  exchange: string;
+  status: string;
+  priceRange: string | null;
+  sharesOffered: number | null;
+  expectedDate: string | null;
+  firstTradeDate: string | null;
+  ipoPrice: number | null;
+  secForm: string | null;
+  secFilingDate: string | null;
+  sources: string[];
+  sourceUrls: string[];
+  primaryLink: string | null;
+  cik: string | null;
+  accession: string | null;
+  lifecycleStage: string;
+  currentBucket: string;
+  withdrawn: boolean;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  updatedAt: string;
+}
+
+export interface IpoRecentRow extends IpoUpcomingRow {
+  currentPrice: number | null;
+  pctFromIpo: number | null;
+  pctFromFirstClose: number | null;
+  day1Volume: number | null;
+  avgVolume30d: number | null;
+  setupAttentionScore: number | null;
+  setupAttentionTier: 'LOW' | 'MED' | 'HIGH' | (string & {}) | null;
+  perfUpdatedAt: string | null;
+}
+
+export interface IpoRadarRow {
+  company: string;
+  companyKey: string;
+  estValuationB: number | null;
+  sector: string | null;
+  /** 0–100 Evidence Score. */
+  evidenceScore: number;
+  evidenceCount: number;
+  lastSignalDate: string;
+  topDrivers: string[];
+  signalConfidentialFiling: number;
+  signalPublicFiling: number;
+  signalConfirmedIpoIntent: number;
+  signalTargetTiming: number;
+  signalValuationReported: number;
+  signalNamedUnderwriters: number;
+  signalMultipleCredibleReports: number;
+}
+
+export interface IpoTransitionEvent {
+  id: number;
+  companyKey: string;
+  company: string;
+  symbol: string | null;
+  eventType: string;
+  fromBucket: string | null;
+  toBucket: string | null;
+  meta: Record<string, unknown>;
+  occurredAt: string;
+}
+
+export interface IpoScannerResult<T> {
+  data: T[];
+  asOf: string;
+  sourceCount: number;
+}
+
+export type IpoUpcoming = IpoScannerResult<IpoUpcomingRow>;
+export type IpoRecent = IpoScannerResult<IpoRecentRow>;
+export type IpoRadar = IpoScannerResult<IpoRadarRow>;
+export type IpoTransitions = IpoScannerResult<IpoTransitionEvent>;
+
+// ---------------------------------------------------------------------------
+// get_bounce_signals / get_bounce_score
+// ---------------------------------------------------------------------------
+
+export interface BounceIndicatorData {
+  bbPctb: number;
+  bbScore: number;
+  bbState: string;
+  kcScore: number;
+  kcState: string;
+  cciScore: number;
+  cciState: string;
+  cciValue: number;
+  rsiScore: number;
+  rsiState: string;
+  rsiValue: number;
+  volRatio: number;
+  volScore: number;
+  volState: string;
+  macdScore: number;
+  macdState: string;
+  signalDate: string;
+  stochScore: number;
+  stochState: string;
+  willrScore: number;
+  willrState: string;
+  willrValue: number;
+  rsiDivBonus: number;
+  stochDValue: number;
+  stochKValue: number;
+  compositeScore: number;
+  compositeYesterday: number;
+}
+
+export interface BounceSignal {
+  id: number;
+  ticker: string;
+  signalType: 'bounce_top' | 'bounce_bottom' | (string & {});
+  price: number;
+  changePercent: number;
+  volume: number;
+  avgVolume: number;
+  indicatorData: BounceIndicatorData;
+  source: string;
+  detectedAt: string;
+}
+
+export interface BounceSignals {
+  signals: BounceSignal[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
+export interface BounceScore {
+  ticker: string;
+  price: number;
+  changePercent: number;
+  compositeScore: number;
+  compositeYesterday: number;
+  kcScore: number;
+  rsiScore: number;
+  rsiDivBonus: number;
+  stochScore: number;
+  bbScore: number;
+  macdScore: number;
+  volScore: number;
+  willrScore: number;
+  cciScore: number;
+  rsiValue: number;
+  stochKValue: number;
+  stochDValue: number;
+  bbPctb: number;
+  volRatio: number;
+  willrValue: number;
+  cciValue: number;
+  kcState: string;
+  rsiState: string;
+  stochState: string;
+  bbState: string;
+  macdState: string;
+  volState: string;
+  willrState: string;
+  cciState: string;
+}
+
+// ---------------------------------------------------------------------------
+// get_conviction
+// ---------------------------------------------------------------------------
+
+export interface ConvictionTickerEntry {
+  ticker: string;
+  score: number;
+  adds24h: number;
+  removes24h: number;
+  net24h: number;
+}
+
+export interface ConvictionTopAdd extends ConvictionTickerEntry {
+  net7d: number;
+}
+
+export interface ConvictionMarket {
+  score: number;
+  breakdown: {
+    watchlistMomentum: number;
+    chatSentiment: number;
+    discordReactions: number;
+  };
+  topTickers: ConvictionTickerEntry[];
+  topAdds: ConvictionTopAdd[];
+  asOf: string;
+}
+
+export interface ConvictionTicker {
+  ticker: string;
+  score: number;
+  breakdown: {
+    watchlistMomentum: number;
+    chatSentiment: number;
+  };
+  asOf: string;
+}
+
+// ---------------------------------------------------------------------------
+// get_market_health
+// ---------------------------------------------------------------------------
+
+export type HealthStatus = 'ALERT' | 'WATCH' | 'CLEAR' | 'OK' | 'UNAVAILABLE' | (string & {});
+
+export interface MarketHealthSignal {
+  id: string;
+  label: string;
+  category: string;
+  status: HealthStatus;
+  summary: string;
+  dataPoints: string[];
+  asOf: string;
+  detail: Record<string, unknown>;
+}
+
+export interface MarketHealth {
+  signals: MarketHealthSignal[];
+  alertCount: number;
+  watchCount: number;
+  availableCount: number;
+  totalCount: number;
+  generatedAt: string;
+  compositeScore: {
+    value: number;
+    max: number;
+    label: 'LOW' | 'ELEVATED' | 'HIGH' | (string & {});
+  };
+}
+
+// ---------------------------------------------------------------------------
+// get_hedge_analysis
+// ---------------------------------------------------------------------------
+
+export interface HedgeLeg {
+  type: 'put' | 'call';
+  side: 'long' | 'short';
+  strike: number;
+  qty: number;
+  premium: number;
+}
+
+export interface HedgeStructure {
+  kind: 'put_spread_collar' | 'collar' | 'bear_put_spread' | 'protective_put' | (string & {});
+  legs: HedgeLeg[];
+  /** Debit (+) or credit (−). */
+  cost: number;
+  dollarsProtected: number;
+  costPerDollarProtected: number;
+  breakevenAtExpiry: number | null;
+  positionDelta: number;
+  rationale: string;
+}
+
+/** Shopped hedges for the position. `error` is set (e.g. "Ticker not found") when the symbol/chain can't be resolved. */
+export type HedgeAnalysis =
+  | { symbol: string; error: string }
+  | {
+      symbol: string;
+      spot: number;
+      expiration: string;
+      dte: number;
+      downsideMove: number;
+      downsideBasis: 'expected_move' | 'atr' | (string & {});
+      downsideDollars: number;
+      hedges: HedgeStructure[];
+      error?: undefined;
+    };
+
+// ---------------------------------------------------------------------------
 // Tool registry — maps each MCP tool name to its response type.
 // ---------------------------------------------------------------------------
 
@@ -421,6 +863,18 @@ export interface ToolResponses {
   get_edge_xray: EdgeXray;
   get_earnings_flow: EarningsFlow;
   get_economic_calendar: EconomicCalendar;
+  get_apex_levels: ApexLevels;
+  get_politician_trades: PoliticianTrades;
+  get_politician_trades_by_ticker: PoliticianTradesByTicker;
+  get_institutional_activity: InstitutionalActivity;
+  get_dividend_calendar: DividendCalendar;
+  get_long_term_quality: QualityList | QualitySingle;
+  get_ipo_scanner: IpoUpcoming | IpoRecent | IpoRadar | IpoTransitions;
+  get_bounce_signals: BounceSignals;
+  get_bounce_score: BounceScore;
+  get_conviction: ConvictionMarket | ConvictionTicker;
+  get_market_health: MarketHealth;
+  get_hedge_analysis: HedgeAnalysis;
 }
 
 export type ToolName = keyof ToolResponses;

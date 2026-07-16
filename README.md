@@ -114,6 +114,18 @@ Each maps to one MCP tool and returns its typed response.
 | `edgeXray(symbol?)` | `get_edge_xray` |
 | `earningsFlow({ days = 7 })` | `get_earnings_flow` |
 | `economicCalendar()` | `get_economic_calendar` |
+| `apexLevels(symbol, { expiration? })` | `get_apex_levels` |
+| `politicianTrades({ tab?, window?, limit? })` | `get_politician_trades` |
+| `politicianTradesByTicker(ticker, { days? })` | `get_politician_trades_by_ticker` |
+| `institutionalActivity({ limit? })` | `get_institutional_activity` |
+| `dividendCalendar({ from?, days?, limit? })` | `get_dividend_calendar` |
+| `longTermQuality(symbol)` / `longTermQuality({ minScore?, minDivYield?, sector?, sort?, limit? })` | `get_long_term_quality` |
+| `ipoScanner(view, opts?)` — `view` is `upcoming` \| `recent` \| `radar` \| `transitions` | `get_ipo_scanner` |
+| `bounceSignals({ direction?, page?, pageSize? })` | `get_bounce_signals` |
+| `bounceScore(symbol)` | `get_bounce_score` |
+| `conviction()` / `conviction(symbol)` | `get_conviction` |
+| `marketHealth()` | `get_market_health` |
+| `hedgeAnalysis(symbol, shares, { basis?, atr?, limit? })` | `get_hedge_analysis` |
 
 `callTool(name, args)` is a generic escape hatch for tools added to the API
 before this SDK version knows about them.

@@ -10,15 +10,34 @@
  */
 
 import type {
+  ApexLevels,
+  BounceScore,
+  BounceSignals,
+  ConvictionMarket,
+  ConvictionTicker,
+  DividendCalendar,
   EarningsFlow,
   EconomicCalendar,
   EdgeXray,
   GexOverview,
   GexSymbol,
   GexTicker,
+  HedgeAnalysis,
+  InstitutionalActivity,
+  IpoRadar,
+  IpoRecent,
+  IpoScannerView,
+  IpoTransitions,
+  IpoUpcoming,
   IvRank,
+  MarketHealth,
   MarketStats,
+  PoliticianTrades,
+  PoliticianTradesByTicker,
   PutCallRatios,
+  QualityList,
+  QualityRow,
+  QualitySingle,
   ScreenerResult,
   ScreenerResultRow,
   SectorFlow,
@@ -585,5 +604,308 @@ export function get_edge_xray(args?: ToolArgs): EdgeXray {
       overallBias: 'calls slightly rich, puts slightly cheap',
     },
     timestamp: NOW(),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// get_apex_levels
+// ---------------------------------------------------------------------------
+export function get_apex_levels(args?: ToolArgs): ApexLevels {
+  const sym = String(args?.symbol ?? 'SPY').toUpperCase();
+  const spot = 502.3;
+  return {
+    symbol: sym,
+    spotPrice: spot,
+    snapshotTime: NOW(),
+    mode: args?.expiration ? 'single' : 'aggregate',
+    expirationsUsed: ['2026-07-18', '2026-07-25', '2026-08-01'],
+    availableExpirations: ['2026-07-18', '2026-07-25', '2026-08-01', '2026-08-15', '2026-09-19'],
+    gammaFlip: 498.5,
+    levels: [
+      { strike: 505, score: 100, rank: 1, netGEX: 1_240_000_000, totalOI: 68_400, isAboveSpot: true },
+      { strike: 495, score: 74, rank: 2, netGEX: -320_000_000, totalOI: 91_200, isAboveSpot: false },
+      { strike: 510, score: 52, rank: 3, netGEX: 480_000_000, totalOI: 41_600, isAboveSpot: true },
+      { strike: 490, score: 41, rank: 4, netGEX: -180_000_000, totalOI: 55_800, isAboveSpot: false },
+      { strike: 500, score: 38, rank: 5, netGEX: 92_000_000, totalOI: 38_100, isAboveSpot: false },
+    ],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// get_politician_trades / get_politician_trades_by_ticker
+// ---------------------------------------------------------------------------
+export function get_politician_trades(args?: ToolArgs): PoliticianTrades {
+  const tab = (args?.tab as string) ?? 'top_portfolios';
+  return {
+    success: true,
+    tab,
+    window_days: tab === 'most_active' ? 30 : 90,
+    generated_at: NOW(),
+    entries: [
+      { name: 'A. Ramirez', party: 'Democrat', chamber: 'House', totalEstimated: 2_400_000, tradeCount: 18, uniqueTickers: 12, topTickers: ['NVDA', 'MSFT', 'GOOGL'], lastTradeDate: '2026-07-01' },
+      { name: 'K. Whitfield', party: 'Republican', chamber: 'Senate', totalEstimated: 1_850_000, tradeCount: 9, uniqueTickers: 7, topTickers: ['XOM', 'CVX'], lastTradeDate: '2026-06-28' },
+      { name: 'T. Boone', party: 'Republican', chamber: 'House', totalEstimated: 940_000, tradeCount: 24, uniqueTickers: 15, topTickers: ['AAPL', 'AMD', 'TSLA'], lastTradeDate: '2026-07-05' },
+      { name: 'S. Nakamura', party: 'Democrat', chamber: 'House', totalEstimated: 610_000, tradeCount: 6, uniqueTickers: 5, topTickers: ['JPM'], lastTradeDate: '2026-06-20' },
+    ],
+  };
+}
+
+export function get_politician_trades_by_ticker(args?: ToolArgs): PoliticianTradesByTicker {
+  const ticker = String(args?.ticker ?? 'NVDA').toUpperCase();
+  return {
+    success: true,
+    ticker,
+    period_days: 90,
+    total_trades: 2,
+    trades: [
+      {
+        id: `a-ramirez_${ticker.toLowerCase()}_2026-07-01_buy`,
+        name: 'A. Ramirez', party: 'Democrat', chamber: 'House',
+        state_abbreviation: 'CA', state_name: 'California',
+        company: `${ticker} Corp`, ticker,
+        trade_date: '2026-07-01T00:00:00.000Z', days_until_disclosure: 22,
+        trade_type: 'buy', trade_amount: '100K-250K', value_at_purchase: '$128.40',
+        updated_at: NOW(),
+      },
+      {
+        id: `t-boone_${ticker.toLowerCase()}_2026-06-15_sell`,
+        name: 'T. Boone', party: 'Republican', chamber: 'House',
+        state_abbreviation: 'TX', state_name: 'Texas',
+        company: `${ticker} Corp`, ticker,
+        trade_date: '2026-06-15T00:00:00.000Z', days_until_disclosure: 30,
+        trade_type: 'sell', trade_amount: '15K-50K', value_at_purchase: '$121.10',
+        updated_at: NOW(),
+      },
+    ],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// get_institutional_activity
+// ---------------------------------------------------------------------------
+export function get_institutional_activity(args?: ToolArgs): InstitutionalActivity {
+  const limit = typeof args?.limit === 'number' ? args.limit : 10;
+  const flows = [
+    { ticker: 'SOXL', sentiment: 'Bullish' as const, total_premium: 27_800_000, flow_count: 60 },
+    { ticker: 'INTC', sentiment: 'Bullish' as const, total_premium: 20_900_000, flow_count: 40 },
+    { ticker: 'MU', sentiment: 'Bullish' as const, total_premium: 16_200_000, flow_count: 35 },
+    { ticker: 'PLTR', sentiment: 'Bullish' as const, total_premium: 12_400_000, flow_count: 28 },
+    { ticker: 'IWM', sentiment: 'Bearish' as const, total_premium: 5_400_000, flow_count: 21 },
+  ];
+  return {
+    flows: flows.slice(0, limit),
+    trading_date: NOW(),
+    is_current_day: true,
+    timeframe: 'today',
+  };
+}
+
+// ---------------------------------------------------------------------------
+// get_dividend_calendar
+// ---------------------------------------------------------------------------
+export function get_dividend_calendar(args?: ToolArgs): DividendCalendar {
+  const results = [
+    { symbol: 'PNC', companyName: 'PNC Financial Services Group Inc', sector: 'Banking', exDate: '2026-07-20', payDate: '2026-08-05', dividendRate: 8, dividendYield: 3.18 },
+    { symbol: 'CAT', companyName: 'Caterpillar Inc', sector: 'Machinery', exDate: '2026-07-20', payDate: '2026-08-19', dividendRate: 6.52, dividendYield: 0.7 },
+    { symbol: 'LOW', companyName: "Lowe's Companies Inc", sector: 'Retail', exDate: '2026-07-22', payDate: '2026-08-05', dividendRate: 5, dividendYield: 2.41 },
+    { symbol: 'PFE', companyName: 'Pfizer Inc', sector: 'Pharmaceuticals', exDate: '2026-07-24', payDate: '2026-09-01', dividendRate: 1.72, dividendYield: 7.09 },
+    { symbol: 'O', companyName: 'Realty Income Corp', sector: 'Real Estate', exDate: '2026-07-31', payDate: '2026-08-14', dividendRate: 3.25, dividendYield: 5.1 },
+  ];
+  const limit = typeof args?.limit === 'number' ? args.limit : 200;
+  const sliced = results.slice(0, limit);
+  return { count: sliced.length, from: '2026-07-16', days: typeof args?.days === 'number' ? args.days : 60, results: sliced };
+}
+
+// ---------------------------------------------------------------------------
+// get_long_term_quality
+// ---------------------------------------------------------------------------
+const QUALITY_ROWS: QualityRow[] = [
+  { symbol: 'MU', companyName: 'Micron Technology Inc', sector: 'Semiconductors', qualityScore: 96, pe: 22.1, pb: 11.1, beta: 2.21, marketCap: 1_058_000_000_000, netMargin: 55.9, operatingMargin: 65.6, grossMargin: 72.6, roe: 70.6, roa: 49.9, revenueGrowthYoY: 167.0, epsGrowthYoY: 700.7, dividendYield: 0.51, dividendRate: 0.6, payoutRatio: 1.1, debtToEquity: 0.06, currentRatio: 3.42, interestCoverage: 20.1, week52High: 1255, week52Low: 103.4, updatedAt: NOW() },
+  { symbol: 'AAPL', companyName: 'Apple Inc', sector: 'Technology', qualityScore: 81, pe: 39.2, pb: 45.1, beta: 1.1, marketCap: 4_624_000_000_000, netMargin: 27.2, operatingMargin: 32.6, grossMargin: 47.9, roe: 146.7, roa: 34.0, revenueGrowthYoY: 12.8, epsGrowthYoY: 29.0, dividendYield: 0.32, dividendRate: 1.08, payoutRatio: 12.7, debtToEquity: 0.8, currentRatio: 1.07, interestCoverage: 622.5, week52High: 323.5, week52Low: 201.5, updatedAt: NOW() },
+  { symbol: 'JNJ', companyName: 'Johnson & Johnson', sector: 'Pharmaceuticals', qualityScore: 89, pe: 17.4, pb: 5.8, beta: 0.54, marketCap: 412_000_000_000, netMargin: 21.3, operatingMargin: 26.1, grossMargin: 68.2, roe: 33.4, roa: 12.7, revenueGrowthYoY: 6.1, epsGrowthYoY: 8.9, dividendYield: 3.1, dividendRate: 5.16, payoutRatio: 44.2, debtToEquity: 0.45, currentRatio: 1.34, interestCoverage: 28.6, week52High: 178.2, week52Low: 142.1, updatedAt: NOW() },
+];
+
+export function get_long_term_quality(args?: ToolArgs): QualityList | QualitySingle {
+  if (args?.symbol) {
+    const sym = String(args.symbol).toUpperCase();
+    const row = QUALITY_ROWS.find((r) => r.symbol === sym) ?? { ...QUALITY_ROWS[0]!, symbol: sym };
+    return { ...row, nextExDate: '2026-08-10', nextPayDate: '2026-08-24', nextEarningsDate: '2026-10-29', live: !QUALITY_ROWS.some((r) => r.symbol === sym) };
+  }
+  const limit = typeof args?.limit === 'number' ? args.limit : 100;
+  return { count: QUALITY_ROWS.length, results: QUALITY_ROWS.slice(0, limit) };
+}
+
+// ---------------------------------------------------------------------------
+// get_ipo_scanner
+// ---------------------------------------------------------------------------
+export function get_ipo_scanner(args?: ToolArgs): IpoUpcoming | IpoRecent | IpoRadar | IpoTransitions {
+  const view = (args?.view as IpoScannerView) ?? 'upcoming';
+  const asOf = NOW();
+  if (view === 'recent') {
+    return {
+      data: [
+        {
+          id: 1076, company: 'DPC Holdings Ltd', companyKey: 'dpc', symbol: 'DPC', exchange: 'NYSE', status: 'priced',
+          priceRange: '33.00', sharesOffered: 27_858_585, expectedDate: '2026-06-25', firstTradeDate: '2026-06-25',
+          ipoPrice: 33, secForm: null, secFilingDate: null, sources: ['FINNHUB', 'NASDAQ'], sourceUrls: [],
+          primaryLink: null, cik: null, accession: null, lifecycleStage: 'Calendar', currentBucket: 'Recent',
+          withdrawn: false, firstSeenAt: '2026-05-28T10:00:00.000Z', lastSeenAt: asOf, updatedAt: asOf,
+          currentPrice: 46.75, pctFromIpo: 41.67, pctFromFirstClose: -0.28, day1Volume: 18_650_348,
+          avgVolume30d: 3_119_851, setupAttentionScore: 63, setupAttentionTier: 'MED', perfUpdatedAt: asOf,
+        },
+      ],
+      asOf, sourceCount: 2,
+    };
+  }
+  if (view === 'radar') {
+    return {
+      data: [
+        { company: 'Nimbus AI', companyKey: 'nimbusai', estValuationB: 42, sector: 'AI infrastructure', evidenceScore: 84, evidenceCount: 12, lastSignalDate: asOf, topDrivers: ['confidential_filing', 'named_underwriters'], signalConfidentialFiling: 1, signalPublicFiling: 0, signalConfirmedIpoIntent: 0, signalTargetTiming: 1, signalValuationReported: 1, signalNamedUnderwriters: 1, signalMultipleCredibleReports: 1 },
+      ],
+      asOf, sourceCount: 1,
+    };
+  }
+  if (view === 'transitions') {
+    return {
+      data: [
+        { id: 1710, companyKey: 'descartes', company: 'Descartes Systems Group Inc', symbol: null, eventType: 'sec_filing', fromBucket: null, toBucket: null, meta: { form_type: 'F-1' }, occurredAt: asOf },
+      ],
+      asOf, sourceCount: 1,
+    };
+  }
+  return {
+    data: [
+      { id: 6894, company: 'Csquare, Inc.', companyKey: 'csquare', symbol: 'CSQR', exchange: 'NYSE', status: 'expected', priceRange: '23.00-27.00', sharesOffered: 50_000_000, expectedDate: '2026-07-18', firstTradeDate: null, ipoPrice: null, secForm: null, secFilingDate: null, sources: ['FINNHUB', 'NASDAQ'], sourceUrls: [], primaryLink: null, cik: null, accession: null, lifecycleStage: 'Calendar', currentBucket: 'Upcoming', withdrawn: false, firstSeenAt: '2026-06-27T10:00:00.000Z', lastSeenAt: asOf, updatedAt: asOf },
+    ],
+    asOf, sourceCount: 2,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// get_bounce_signals / get_bounce_score
+// ---------------------------------------------------------------------------
+function bounceIndicators(overbought: boolean): BounceSignals['signals'][number]['indicatorData'] {
+  return {
+    bbPctb: overbought ? 0.94 : 0.06, bbScore: 1, bbState: overbought ? 'overbought' : 'oversold',
+    kcScore: 1, kcState: overbought ? 'above_upper' : 'below_lower',
+    cciScore: 1, cciState: 'extended', cciValue: overbought ? 128.5 : -132.1,
+    rsiScore: 1, rsiState: overbought ? 'overbought' : 'oversold', rsiValue: overbought ? 87.4 : 14.2,
+    volRatio: 1.14, volScore: 0, volState: 'normal',
+    macdScore: 0, macdState: 'neutral', signalDate: '2026-07-15',
+    stochScore: 1, stochState: overbought ? 'overbought' : 'oversold',
+    willrScore: 0, willrState: 'neutral', willrValue: overbought ? -51.9 : -8.6,
+    rsiDivBonus: 0, stochDValue: overbought ? 100 : 2, stochKValue: overbought ? 100 : 2,
+    compositeScore: 5, compositeYesterday: 1,
+  };
+}
+
+export function get_bounce_signals(args?: ToolArgs): BounceSignals {
+  const direction = (args?.direction as string) ?? 'all';
+  const all = [
+    { id: 13795, ticker: 'BABA', signalType: 'bounce_top' as const, price: 117.74, changePercent: 4.83, volume: 17_875_485, avgVolume: 15_049_434, indicatorData: bounceIndicators(true), source: 'leveraged', detectedAt: NOW() },
+    { id: 13780, ticker: 'RIOT', signalType: 'bounce_bottom' as const, price: 9.12, changePercent: -6.4, volume: 22_340_112, avgVolume: 18_902_400, indicatorData: bounceIndicators(false), source: 'small-cap', detectedAt: NOW() },
+  ];
+  const signals = direction === 'top' ? all.filter((s) => s.signalType === 'bounce_top')
+    : direction === 'bottom' ? all.filter((s) => s.signalType === 'bounce_bottom')
+    : all;
+  return { signals, total: signals.length, page: typeof args?.page === 'number' ? args.page : 1, pageSize: typeof args?.pageSize === 'number' ? args.pageSize : 50, hasMore: false };
+}
+
+export function get_bounce_score(args?: ToolArgs): BounceScore {
+  const ticker = String(args?.symbol ?? 'AAPL').toUpperCase();
+  return {
+    ticker, price: 227.5, changePercent: 4.01, compositeScore: 4, compositeYesterday: 2,
+    kcScore: 1, rsiScore: 1, rsiDivBonus: 0, stochScore: 1, bbScore: 0, macdScore: 0, volScore: 0, willrScore: 1, cciScore: 0,
+    rsiValue: 80.3, stochKValue: 100, stochDValue: 100, bbPctb: 0.87, volRatio: 0.86, willrValue: -2.2, cciValue: 104.7,
+    kcState: 'above_upper', rsiState: 'overbought', stochState: 'overbought', bbState: 'neutral', macdState: 'neutral', volState: 'normal', willrState: 'overbought', cciState: 'normal',
+  };
+}
+
+// ---------------------------------------------------------------------------
+// get_conviction
+// ---------------------------------------------------------------------------
+export function get_conviction(args?: ToolArgs): ConvictionMarket | ConvictionTicker {
+  if (args?.symbol) {
+    return {
+      ticker: String(args.symbol).toUpperCase(),
+      score: 55,
+      breakdown: { watchlistMomentum: 53, chatSentiment: 57 },
+      asOf: NOW(),
+    };
+  }
+  const entry = (ticker: string, score: number, adds: number) => ({ ticker, score, adds24h: adds, removes24h: 0, net24h: adds });
+  return {
+    score: 80,
+    breakdown: { watchlistMomentum: 98, chatSentiment: 56, discordReactions: 80 },
+    topTickers: [entry('RKLB', 53, 2), entry('PLTR', 53, 2), entry('AAPL', 53, 2), entry('NFLX', 52, 1)],
+    topAdds: [
+      { ticker: 'PLTR', score: 63, adds24h: 2, removes24h: 0, net24h: 2, net7d: 8 },
+      { ticker: 'NVDA', score: 58, adds24h: 1, removes24h: 0, net24h: 1, net7d: 5 },
+    ],
+    asOf: NOW(),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// get_market_health
+// ---------------------------------------------------------------------------
+export const get_market_health: MarketHealth = {
+  signals: [
+    { id: 'risk_appetite_sphb_splv', label: 'SPHB / SPLV Ratio', category: 'RISK APPETITE', status: 'ALERT', summary: 'High-beta lagging defensive; risk appetite fading.', dataPoints: ['Ratio 1.944 vs 20d MA 2.002', '20d slope -4.7%'], asOf: NOW(), detail: { ratio: 1.94, ma20: 2.0, slope20Pct: -4.67 } },
+    { id: 'credit_hyg_jnk', label: 'HYG / JNK Credit ETFs', category: 'CREDIT', status: 'CLEAR', summary: 'Both HY ETFs trading above 50d MA.', dataPoints: ['HYG 80.10 vs 50d MA 79.82', 'JNK 96.40 vs 50d MA 96.13'], asOf: NOW(), detail: { hygLast: 80.1, hygMa50: 79.82, jnkLast: 96.4, jnkMa50: 96.13 } },
+    { id: 'vol_vix_spx_diverge', label: 'VIX vs SPX Divergence', category: 'VOL REGIME', status: 'CLEAR', summary: 'Vol regime aligned with tape direction.', dataPoints: ['VIX 5d -7.3% (now 15.67)', 'SPY 5d 1.3% (now 502.3)'], asOf: NOW(), detail: { vixLast: 15.67, vix5dPct: -7.28, spyLast: 502.3, spy5dPct: 1.26 } },
+    { id: 'leadership_semis_failures', label: 'Semis Breakout Failures', category: 'LEADERSHIP', status: 'CLEAR', summary: 'No recent SMH breakout failures.', dataPoints: ['SMH last 590.77', 'Failures in last 10 sessions: 0'], asOf: NOW(), detail: { failures: 0, lastClose: 590.77 } },
+  ],
+  alertCount: 1,
+  watchCount: 0,
+  availableCount: 4,
+  totalCount: 7,
+  generatedAt: NOW(),
+  compositeScore: { value: 1, max: 7, label: 'LOW' },
+};
+
+// ---------------------------------------------------------------------------
+// get_hedge_analysis
+// ---------------------------------------------------------------------------
+export function get_hedge_analysis(args?: ToolArgs): HedgeAnalysis {
+  const sym = String(args?.symbol ?? 'AAPL').toUpperCase();
+  const spot = 227.5;
+  return {
+    symbol: sym,
+    spot,
+    expiration: '2026-08-28',
+    dte: 44,
+    downsideMove: 15.5,
+    downsideBasis: 'expected_move',
+    downsideDollars: 1550,
+    hedges: [
+      {
+        kind: 'put_spread_collar',
+        legs: [
+          { type: 'put', side: 'long', strike: 220, qty: 1, premium: 4.7 },
+          { type: 'put', side: 'short', strike: 205, qty: 1, premium: 1.35 },
+          { type: 'call', side: 'short', strike: 240, qty: 1, premium: 4.05 },
+        ],
+        cost: -70,
+        dollarsProtected: 1500,
+        costPerDollarProtected: -0.05,
+        breakevenAtExpiry: 227.7,
+        positionDelta: 42.1,
+        rationale: 'Buy the $220 / sell the $205 put spread and sell the $240 call — cheapest protection, floor stops working below $205',
+      },
+      {
+        kind: 'collar',
+        legs: [
+          { type: 'put', side: 'long', strike: 220, qty: 1, premium: 4.7 },
+          { type: 'call', side: 'short', strike: 240, qty: 1, premium: 4.05 },
+        ],
+        cost: 65,
+        dollarsProtected: 1500,
+        costPerDollarProtected: 0.04,
+        breakevenAtExpiry: null,
+        positionDelta: 33.9,
+        rationale: 'Buy the $220 put and sell the $240 call — finances the downside floor by capping gains above $240',
+      },
+    ],
   };
 }

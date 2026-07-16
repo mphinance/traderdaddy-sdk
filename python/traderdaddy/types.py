@@ -346,3 +346,401 @@ class EconomicCalendar(TypedDict):
     dateTo: str
     totalEvents: int
     events: list[EconomicEvent]
+
+
+# --- get_apex_levels ---------------------------------------------------------
+class ApexLevel(TypedDict):
+    strike: float
+    score: float
+    rank: int
+    netGEX: float
+    totalOI: int
+    isAboveSpot: bool
+
+
+class ApexLevels(TypedDict):
+    symbol: str
+    spotPrice: float
+    snapshotTime: str
+    mode: str
+    expirationsUsed: list[str]
+    availableExpirations: list[str]
+    gammaFlip: float
+    levels: list[ApexLevel]
+
+
+# --- get_politician_trades / get_politician_trades_by_ticker ----------------
+class PoliticianPortfolioEntry(TypedDict):
+    name: str
+    party: str
+    chamber: str
+    totalEstimated: float
+    tradeCount: int
+    uniqueTickers: int
+    topTickers: list[str]
+    lastTradeDate: str
+
+
+class PoliticianTrades(TypedDict):
+    success: bool
+    tab: str
+    window_days: int
+    generated_at: str
+    entries: list[PoliticianPortfolioEntry]
+
+
+class PoliticianTrade(TypedDict):
+    id: str
+    name: str
+    party: str
+    chamber: str
+    state_abbreviation: str
+    state_name: str
+    company: str
+    ticker: str
+    trade_date: str
+    days_until_disclosure: int
+    trade_type: str
+    trade_amount: str
+    value_at_purchase: str
+    updated_at: str
+
+
+class PoliticianTradesByTicker(TypedDict):
+    success: bool
+    ticker: str
+    period_days: int
+    total_trades: int
+    trades: list[PoliticianTrade]
+
+
+# --- get_institutional_activity ----------------------------------------------
+class InstitutionalFlow(TypedDict):
+    ticker: str
+    sentiment: str
+    total_premium: float
+    flow_count: int
+
+
+class InstitutionalActivity(TypedDict):
+    flows: list[InstitutionalFlow]
+    trading_date: str
+    is_current_day: bool
+    timeframe: str
+
+
+# --- get_dividend_calendar ----------------------------------------------------
+class DividendEvent(TypedDict):
+    symbol: str
+    companyName: str
+    sector: str
+    exDate: str
+    payDate: str
+    dividendRate: float
+    dividendYield: float
+
+
+class DividendCalendar(TypedDict):
+    count: int
+    from_: NotRequired[str]  # 'from' is a Python keyword; wire key is still "from"
+    days: int
+    results: list[DividendEvent]
+
+
+# --- get_long_term_quality ----------------------------------------------------
+class QualityRow(TypedDict):
+    symbol: str
+    companyName: str
+    sector: str
+    qualityScore: float
+    pe: float
+    pb: float
+    beta: float
+    marketCap: float
+    netMargin: float
+    operatingMargin: float
+    grossMargin: float
+    roe: float
+    roa: float
+    revenueGrowthYoY: float
+    epsGrowthYoY: float
+    dividendYield: float | None
+    dividendRate: float
+    payoutRatio: float | None
+    debtToEquity: float
+    currentRatio: float
+    interestCoverage: float
+    week52High: float
+    week52Low: float
+    updatedAt: str
+
+
+class QualityList(TypedDict):
+    count: int
+    results: list[QualityRow]
+
+
+class QualitySingle(QualityRow):
+    nextExDate: str | None
+    nextPayDate: str | None
+    nextEarningsDate: str | None
+    live: bool
+
+
+# --- get_ipo_scanner -----------------------------------------------------------
+class IpoUpcomingRow(TypedDict):
+    id: int
+    company: str
+    companyKey: str
+    symbol: str | None
+    exchange: str
+    status: str
+    priceRange: str | None
+    sharesOffered: int | None
+    expectedDate: str | None
+    firstTradeDate: str | None
+    ipoPrice: float | None
+    secForm: str | None
+    secFilingDate: str | None
+    sources: list[str]
+    sourceUrls: list[str]
+    primaryLink: str | None
+    cik: str | None
+    accession: str | None
+    lifecycleStage: str
+    currentBucket: str
+    withdrawn: bool
+    firstSeenAt: str
+    lastSeenAt: str
+    updatedAt: str
+
+
+class IpoRecentRow(IpoUpcomingRow):
+    currentPrice: float | None
+    pctFromIpo: float | None
+    pctFromFirstClose: float | None
+    day1Volume: int | None
+    avgVolume30d: float | None
+    setupAttentionScore: float | None
+    setupAttentionTier: str | None
+    perfUpdatedAt: str | None
+
+
+class IpoRadarRow(TypedDict):
+    company: str
+    companyKey: str
+    estValuationB: float | None
+    sector: str | None
+    evidenceScore: float
+    evidenceCount: int
+    lastSignalDate: str
+    topDrivers: list[str]
+    signalConfidentialFiling: int
+    signalPublicFiling: int
+    signalConfirmedIpoIntent: int
+    signalTargetTiming: int
+    signalValuationReported: int
+    signalNamedUnderwriters: int
+    signalMultipleCredibleReports: int
+
+
+class IpoTransitionEvent(TypedDict):
+    id: int
+    companyKey: str
+    company: str
+    symbol: str | None
+    eventType: str
+    fromBucket: str | None
+    toBucket: str | None
+    meta: dict
+    occurredAt: str
+
+
+class IpoUpcoming(TypedDict):
+    data: list[IpoUpcomingRow]
+    asOf: str
+    sourceCount: int
+
+
+class IpoRecent(TypedDict):
+    data: list[IpoRecentRow]
+    asOf: str
+    sourceCount: int
+
+
+class IpoRadar(TypedDict):
+    data: list[IpoRadarRow]
+    asOf: str
+    sourceCount: int
+
+
+class IpoTransitions(TypedDict):
+    data: list[IpoTransitionEvent]
+    asOf: str
+    sourceCount: int
+
+
+# --- get_bounce_signals / get_bounce_score ------------------------------------
+class BounceIndicatorData(TypedDict):
+    bbPctb: float
+    bbScore: float
+    bbState: str
+    kcScore: float
+    kcState: str
+    cciScore: float
+    cciState: str
+    cciValue: float
+    rsiScore: float
+    rsiState: str
+    rsiValue: float
+    volRatio: float
+    volScore: float
+    volState: str
+    macdScore: float
+    macdState: str
+    signalDate: str
+    stochScore: float
+    stochState: str
+    willrScore: float
+    willrState: str
+    willrValue: float
+    rsiDivBonus: float
+    stochDValue: float
+    stochKValue: float
+    compositeScore: float
+    compositeYesterday: float
+
+
+class BounceSignal(TypedDict):
+    id: int
+    ticker: str
+    signalType: str
+    price: float
+    changePercent: float
+    volume: int
+    avgVolume: float
+    indicatorData: BounceIndicatorData
+    source: str
+    detectedAt: str
+
+
+class BounceSignals(TypedDict):
+    signals: list[BounceSignal]
+    total: int
+    page: int
+    pageSize: int
+    hasMore: bool
+
+
+class BounceScore(TypedDict):
+    ticker: str
+    price: float
+    changePercent: float
+    compositeScore: float
+    compositeYesterday: float
+    kcScore: float
+    rsiScore: float
+    rsiDivBonus: float
+    stochScore: float
+    bbScore: float
+    macdScore: float
+    volScore: float
+    willrScore: float
+    cciScore: float
+    rsiValue: float
+    stochKValue: float
+    stochDValue: float
+    bbPctb: float
+    volRatio: float
+    willrValue: float
+    cciValue: float
+    kcState: str
+    rsiState: str
+    stochState: str
+    bbState: str
+    macdState: str
+    volState: str
+    willrState: str
+    cciState: str
+
+
+# --- get_conviction -------------------------------------------------------------
+class ConvictionTickerEntry(TypedDict):
+    ticker: str
+    score: float
+    adds24h: int
+    removes24h: int
+    net24h: int
+
+
+class ConvictionTopAdd(ConvictionTickerEntry):
+    net7d: int
+
+
+class ConvictionMarket(TypedDict):
+    score: float
+    breakdown: dict
+    topTickers: list[ConvictionTickerEntry]
+    topAdds: list[ConvictionTopAdd]
+    asOf: str
+
+
+class ConvictionTicker(TypedDict):
+    ticker: str
+    score: float
+    breakdown: dict
+    asOf: str
+
+
+# --- get_market_health -----------------------------------------------------------
+class MarketHealthSignal(TypedDict):
+    id: str
+    label: str
+    category: str
+    status: str
+    summary: str
+    dataPoints: list[str]
+    asOf: str
+    detail: dict
+
+
+class MarketHealth(TypedDict):
+    signals: list[MarketHealthSignal]
+    alertCount: int
+    watchCount: int
+    availableCount: int
+    totalCount: int
+    generatedAt: str
+    compositeScore: dict
+
+
+# --- get_hedge_analysis -----------------------------------------------------------
+class HedgeLeg(TypedDict):
+    type: str
+    side: str
+    strike: float
+    qty: int
+    premium: float
+
+
+class HedgeStructure(TypedDict):
+    kind: str
+    legs: list[HedgeLeg]
+    cost: float
+    dollarsProtected: float
+    costPerDollarProtected: float
+    breakevenAtExpiry: float | None
+    positionDelta: float
+    rationale: str
+
+
+class HedgeAnalysis(TypedDict):
+    symbol: str
+    spot: NotRequired[float]
+    expiration: NotRequired[str]
+    dte: NotRequired[int]
+    downsideMove: NotRequired[float]
+    downsideBasis: NotRequired[str]
+    downsideDollars: NotRequired[float]
+    hedges: NotRequired[list[HedgeStructure]]
+    error: NotRequired[str]

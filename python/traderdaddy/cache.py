@@ -25,6 +25,18 @@ DEFAULT_TTLS: dict[str, float] = {
     "run_screener": 300_000,
     "get_earnings_flow": 30 * 60_000,
     "get_economic_calendar": 30 * 60_000,
+    "get_apex_levels": 120_000,
+    "get_politician_trades": 5 * 60_000,
+    "get_politician_trades_by_ticker": 5 * 60_000,
+    "get_institutional_activity": 60_000,
+    "get_dividend_calendar": 30 * 60_000,
+    "get_long_term_quality": 30 * 60_000,
+    "get_ipo_scanner": 5 * 60_000,
+    "get_bounce_signals": 60_000,
+    "get_bounce_score": 15 * 60_000,
+    "get_conviction": 60_000,
+    "get_market_health": 5 * 60_000,
+    "get_hedge_analysis": 60_000,
 }
 
 _FALLBACK_TTL = 120_000.0
