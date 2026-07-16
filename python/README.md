@@ -69,6 +69,18 @@ Each maps to one MCP tool and returns its typed response.
 | `edge_xray(symbol=None)` | `get_edge_xray` |
 | `earnings_flow(*, days=7)` | `get_earnings_flow` |
 | `economic_calendar()` | `get_economic_calendar` |
+| `apex_levels(symbol, *, expiration=None)` | `get_apex_levels` |
+| `politician_trades(*, tab=None, window=None, limit=None)` | `get_politician_trades` |
+| `politician_trades_by_ticker(ticker, *, days=None)` | `get_politician_trades_by_ticker` |
+| `institutional_activity(*, limit=None)` | `get_institutional_activity` |
+| `dividend_calendar(*, from_=None, days=None, limit=None)` | `get_dividend_calendar` |
+| `long_term_quality(symbol=None, *, min_score=None, min_div_yield=None, sector=None, sort=None, limit=None)` | `get_long_term_quality` |
+| `ipo_scanner(view, **opts)` | `get_ipo_scanner` |
+| `bounce_signals(*, direction=None, page=None, page_size=None)` | `get_bounce_signals` |
+| `bounce_score(symbol)` | `get_bounce_score` |
+| `conviction(symbol=None)` | `get_conviction` |
+| `market_health()` | `get_market_health` |
+| `hedge_analysis(symbol, shares, *, basis=None, atr=None, limit=None)` | `get_hedge_analysis` |
 
 `call_tool(name, args)` is the generic escape hatch.
 
@@ -84,7 +96,7 @@ get_market_phase()  # MarketPhase(phase, is_open, label, next_change_at)
 
 ## Status
 
-**v0.1.0.** All 12 methods work live, and `mock=True` serves a typed fixture for
+**v0.1.0.** All 24 methods work live, and `mock=True` serves a typed fixture for
 every one of them — build against the demo, flip to live with a key. A per-tool
 TTL cache (the TS SDK's `cache: true`) is a planned fast-follow; Home Assistant's
 coordinator handles cadence in the meantime.
