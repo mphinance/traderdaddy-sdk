@@ -28,6 +28,13 @@ the one pattern (SDK + a thin shell) plus a per-app guide.
 your AI through building an app demo-first. Agents working in this repo should
 read [CLAUDE.md](CLAUDE.md) for the ground-truth map.
 
+**Want Claude to actually place the trade?** TraderDaddy Pro is the intelligence
+layer — it doesn't execute. Pair it with a broker MCP server and Claude bridges the
+two: [ECOSYSTEM.md](docs/ECOSYSTEM.md) explains the shape. For *which* brokers you
+can connect — official vs. community, what each can really trade, and who has no MCP
+route at all — see [**awesome-broker-mcp**](https://github.com/mphinance/awesome-broker-mcp),
+our verified directory of the broker MCP landscape.
+
 - **Isomorphic** — runs in Node ≥18 **and** the browser. `fetch` only, zero runtime deps.
 - **Typed everywhere** — one method per tool, fully-typed responses, no `any`.
 - **Keyless demo mode** — `{ mock: true }` serves realistic fixtures with *identical types* to live.

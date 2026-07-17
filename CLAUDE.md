@@ -47,6 +47,7 @@ demo→live switch is the funnel — downstream apps inherit it for free.
 | `python/` | `traderdaddy` — the async Python mirror (published separately on PyPI). |
 | `docs/BUILDING-APPS.md` | Per-app playbook (DaddyLens/Bot/Home/Embed). |
 | `docs/PROMPTS.md` | Copy-paste prompts for vibe coders building apps. |
+| `docs/ECOSYSTEM.md` | How TraderDaddy (brain) pairs with a broker MCP (hands). |
 
 ## Commands
 
@@ -93,3 +94,11 @@ package, so `npm run build` before `npm test` or running any example.
 - Prompts to hand a vibe coder → [`docs/PROMPTS.md`](docs/PROMPTS.md)
 - A working full consumer → [DaddyBoard](https://github.com/mphinance/daddyboard)
 - The thinnest consumer → [DaddyBot](https://github.com/mphinance/daddybot)
+- Which brokers Claude can trade through → [awesome-broker-mcp](https://github.com/mphinance/awesome-broker-mcp)
+
+**The broker research is no longer in this repo.** It moved to
+[`mphinance/awesome-broker-mcp`](https://github.com/mphinance/awesome-broker-mcp),
+which is now canonical — it's a public directory in its own right, not an appendix to
+an SDK. `docs/ECOSYSTEM.md` stays here because it's about *this* product (how the
+intelligence layer pairs with an execution layer). Don't re-add broker pages here;
+send corrections to the list instead, or the two will drift.

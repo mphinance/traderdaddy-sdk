@@ -52,8 +52,8 @@ thing that sees both.
 Nothing stops you from connecting more than one broker MCP alongside TraderDaddy Pro —
 e.g. Tradier for equities and Coinbase for crypto in the same session. Claude routes
 each trade call to the right server based on what you ask for. See
-[`brokers/index.md`](brokers/index.md) for what's currently connectable and
-[`brokers/`](brokers/) for the per-broker setup detail.
+[**awesome-broker-mcp**](https://github.com/mphinance/awesome-broker-mcp) for what's
+currently connectable and the per-broker setup detail.
 
 ## Read-only aggregators are a different shape
 
@@ -61,4 +61,6 @@ Aggregators like SnapTrade plug into *many* brokers through one hosted MCP endpo
 but (as of this writing) they're read-only: portfolio/position visibility across
 accounts, no order placement. Useful for a single "what do I hold everywhere" view
 feeding into TraderDaddy Pro's analysis — not a substitute for a broker's own
-trading-capable MCP.
+trading-capable MCP. The
+[aggregator section](https://github.com/mphinance/awesome-broker-mcp#aggregators) of
+awesome-broker-mcp covers the ones researched, and the one trading-capable exception.
